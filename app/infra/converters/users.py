@@ -12,6 +12,7 @@ def convert_user_entity_to_dict(user: UserEntity) -> Mapping[str, Any]:
         'email': user.email.as_json(),
         'date_birth': user.date_birth,
         'avatar': user.avatar,
+        'verify': user.verify,
         'created_at': user.created_at,
         'updated_at': user.updated_at,
     }
@@ -25,6 +26,7 @@ def convert_user_dto_to_entity(user: UserDto) -> UserEntity:
         email=Email(user.email, _need_validate=False),
         date_birth=user.date_birth,
         avatar=user.avatar,
+        verify=user.verify,
         created_at=user.created_at,
         updated_at=user.updated_at,
     )

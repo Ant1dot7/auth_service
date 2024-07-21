@@ -10,7 +10,7 @@ from infra.services.token.jwt import TokenJwt
 from logic.commands.users import CreateUserCommandHandler, CreateUserCommand, CreateTokenCommandHandler, \
     CreateTokenCommand
 from logic.mediator.main_mediator import Mediator
-from logic.queries.users import GetUserQuery, GetUserQueryHandler
+from logic.queries.users import GetUserByTokenQuery, GetUserByTokenQueryHandler, GetVerifyUserQueryHandler
 from settings.config import Settings, get_settings
 
 
@@ -54,15 +54,16 @@ def _init_container() -> Container:
         )
 
         # QUERY HANDLERS
-        get_user_query_handler = GetUserQueryHandler(
-            user_repository=container.resolve(BaseUserRepository)
+        get_user_by_token_query_handler = GetVerifyUserQueryHandler(
+            user_repository=container.resolve(BaseUserRepository),
+            token_service=container.resolve(TokenJwt),
         )
 
         # REGISTER COMMANDS
         mediator.register_command(CreateUserCommand, [create_user_command_handler])
         mediator.register_command(CreateTokenCommand, [create_token_command_handler])
         # REGISTER QUERY
-        mediator.register_query(GetUserQuery, get_user_query_handler)
+        mediator.register_query(GetUserByTokenQuery, get_user_by_token_query_handler)
 
         return mediator
 

@@ -17,6 +17,7 @@ class UserOutSchema(BaseModel):
     username: str
     email: EmailStr
     date_birth: date | None
+    verify: bool
     avatar: str | None
 
     @classmethod
@@ -26,6 +27,7 @@ class UserOutSchema(BaseModel):
             username=user.username.as_json(),
             email=user.email.as_json(),
             date_birth=user.date_birth,
+            verify=user.verify,
             avatar=user.avatar,
         )
 

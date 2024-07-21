@@ -11,6 +11,7 @@ class User(BaseEntity):
     username: UserName
     password: Password
     email: Email
+    verify: bool = field(default=False, kw_only=True)
     date_birth: date = field(default=None, kw_only=True)
     avatar: str = field(default=None, kw_only=True)
 

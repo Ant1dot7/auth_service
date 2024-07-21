@@ -1,10 +1,9 @@
-import time
 from dataclasses import dataclass
 
 from domain.entities.users import User as UserEntity
 from domain.values.users import UserName, Password, Email
-from infra.exceptions.users import UserAlreadyExists
 from infra.db.repositories.users.base import BaseUserRepository
+from infra.exceptions.users import UserAlreadyExists
 from infra.services.token.jwt import TokenJwt
 from logic.commands.base import BaseCommand
 from logic.commands.base import CommandHandler
@@ -23,7 +22,7 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
     user_repository: BaseUserRepository
 
     async def handle(self, command: CreateUserCommand) -> UserEntity:
-        if await self.user_repository.exists_user(username=command.username):
+        if await self.user_repository.exists_user(username=command.username):  # Todo рефактор
             raise UserAlreadyExists(command.username)
 
         user = UserEntity.create_user(
@@ -48,7 +47,7 @@ class CreateTokenCommandHandler(CommandHandler[CreateTokenCommand, dict]):
     user_repository: BaseUserRepository
     token_service: TokenJwt
 
-    async def handle(self, command: CreateUserCommand) -> dict:
+    async def handle(self, command: CreateUserCommand) -> str:
         user = await self.user_repository.get_user(username=command.username)
         user.password.verify_password(command.password)
         access_token = self.token_service.create_token(user_id=user.id, expire=10)

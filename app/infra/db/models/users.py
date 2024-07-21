@@ -1,19 +1,17 @@
-from datetime import date, datetime
-from typing import Optional
+from datetime import date
 
+from sqlalchemy import String, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
-from infra.db.models.base import Base
+from infra.db.models.base import BaseModel
 
 
-class User(Base):
+class User(BaseModel):
     __tablename__ = "user"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    created_at: Mapped[datetime]
-    updated_at: Mapped[Optional[datetime]]
-    username: Mapped[str] = mapped_column(unique=True)
+    username: Mapped[str] = mapped_column(String(30), unique=True)
     password: Mapped[str]
     email: Mapped[str]
-    date_birth: Mapped[Optional[date]]
-    avatar: Mapped[Optional[str]]
+    verify: Mapped[bool] = mapped_column(Boolean, default=False)
+    date_birth: Mapped[date | None]
+    avatar: Mapped[str | None]

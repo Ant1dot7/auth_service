@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from punq import Container
 from starlette import status
 
@@ -8,13 +8,16 @@ from api.users.schemas import UserInSchema, UserOutSchema, UserTokenOutSchema
 from common.exceptions import BaseAppException
 from domain.exceptions.base import BaseDomainException
 from infra.exceptions.base import InfraException
-from infra.filters.users import GetUserByIdFilter
+from infra.exceptions.token import BaseTokenException
+from infra.filters.users import GetUserByTokenFilter
 from logic.commands.users import CreateUserCommand, CreateTokenCommand
 from logic.container import init_container
 from logic.mediator.main_mediator import Mediator
-from logic.queries.users import GetUserQuery
+from logic.queries.users import GetUserByTokenQuery
 
 router = APIRouter(prefix='/users', default_response_class=ORJSONResponse)
+
+oauth2schema = OAuth2PasswordBearer(tokenUrl="users/token", scheme_name="JWT")
 
 
 @router.post('/')
@@ -27,16 +30,16 @@ async def create_user(user_schema: UserInSchema, container: Container = Depends(
     return UserOutSchema.from_entity(user)
 
 
-@router.get('/{user_id}')
-async def get_user(user_id: int, container: Container = Depends(init_container)):
-    mediator: Mediator = container.resolve(Mediator)
-    try:
-        user = await mediator.handle_query(GetUserQuery(filters=GetUserByIdFilter(user_id)))
-    except InfraException as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except BaseAppException as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    return UserOutSchema.from_entity(user)
+# @router.get('/{user_id}')
+# async def get_user(user_id: int, container: Container = Depends(init_container)):
+#     mediator: Mediator = container.resolve(Mediator)
+#     try:
+#         user = await mediator.handle_query(GetUserQuery(filters=GetUserByIdFilter(user_id)))
+#     except InfraException as e:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+#     except BaseAppException as e:
+#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+#     return UserOutSchema.from_entity(user)
 
 
 @router.post('/token')
@@ -52,3 +55,18 @@ async def token(
     except (BaseDomainException, InfraException):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Invalid login or password')
     return UserTokenOutSchema(access_token=_token)
+
+
+@router.get('/profile')
+async def profile(
+        token: str = Depends(oauth2schema),
+        container: Container = Depends(init_container)
+):
+    mediator: Mediator = container.resolve(Mediator)
+    try:
+        user = await mediator.handle_query(GetUserByTokenQuery(GetUserByTokenFilter(token=token)))
+    except BaseTokenException as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except InfraException as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    return UserOutSchema.from_entity(user)
