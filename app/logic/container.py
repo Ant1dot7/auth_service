@@ -2,15 +2,17 @@ from functools import lru_cache
 
 from punq import Container, Scope
 
+from domain.events.users import NewUserEvent
 from infra.db.db_config import Database
 from infra.db.repositories.users.base import BaseUserRepository
 from infra.db.repositories.users.sql_aclhemy import UserRepository
 from infra.db.models.users import User
-from infra.services.token.jwt import TokenJwt
+from infra.common.users.utils import TokenJwt, GetUserByTokenService
 from logic.commands.users import CreateUserCommandHandler, CreateUserCommand, CreateTokenCommandHandler, \
-    CreateTokenCommand
+    CreateTokenCommand, VerifyUserCommandHandler, VerifyUserCommand
+from logic.events.users import SendVerifyMailEventHandler
 from logic.mediator.main_mediator import Mediator
-from logic.queries.users import GetUserByTokenQuery, GetUserByTokenQueryHandler, GetVerifyUserQueryHandler
+from logic.queries.users import GetUserByTokenQuery, GetVerifyUserQueryHandler
 from settings.config import Settings, get_settings
 
 
@@ -41,30 +43,49 @@ def _init_container() -> Container:
         scope=Scope.singleton
     )
 
+    container.register(
+        GetUserByTokenService,
+        instance=GetUserByTokenService(
+            user_repository=container.resolve(BaseUserRepository),
+            token_service=container.resolve(TokenJwt),
+        )
+    )
+
     def init_mediator() -> Mediator:
         mediator = Mediator()
 
         # COMMAND HANDLERS
         create_user_command_handler = CreateUserCommandHandler(
-            user_repository=container.resolve(BaseUserRepository)
+            user_repository=container.resolve(BaseUserRepository),
+            _mediator=mediator
         )
         create_token_command_handler = CreateTokenCommandHandler(
             user_repository=container.resolve(BaseUserRepository),
             token_service=container.resolve(TokenJwt),
         )
+        verify_user_command_handler = VerifyUserCommandHandler(
+            user_repository=container.resolve(BaseUserRepository),
+            get_user_service=container.resolve(GetUserByTokenService),
+        )
+
+        # EVENT HANDLERS
+        send_verify_token = SendVerifyMailEventHandler(token_service=container.resolve(TokenJwt))
 
         # QUERY HANDLERS
         get_user_by_token_query_handler = GetVerifyUserQueryHandler(
-            user_repository=container.resolve(BaseUserRepository),
-            token_service=container.resolve(TokenJwt),
+            get_user_service=container.resolve(GetUserByTokenService),
         )
 
         # REGISTER COMMANDS
         mediator.register_command(CreateUserCommand, [create_user_command_handler])
         mediator.register_command(CreateTokenCommand, [create_token_command_handler])
+        mediator.register_command(VerifyUserCommand, [verify_user_command_handler])
+
         # REGISTER QUERY
         mediator.register_query(GetUserByTokenQuery, get_user_by_token_query_handler)
 
+        # REGISTER EVENT
+        mediator.register_event(NewUserEvent, [send_verify_token])
         return mediator
 
     container.register(Mediator, factory=init_mediator, scope=Scope.singleton)

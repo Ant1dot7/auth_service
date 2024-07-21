@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel, EmailStr
 
@@ -19,6 +19,8 @@ class UserOutSchema(BaseModel):
     date_birth: date | None
     verify: bool
     avatar: str | None
+    created_at: datetime
+    updated_at: datetime | None
 
     @classmethod
     def from_entity(cls, user: User) -> 'UserOutSchema':
@@ -29,6 +31,8 @@ class UserOutSchema(BaseModel):
             date_birth=user.date_birth,
             verify=user.verify,
             avatar=user.avatar,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
         )
 
 

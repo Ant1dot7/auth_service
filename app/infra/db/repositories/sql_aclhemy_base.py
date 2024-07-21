@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Type
 
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, update
 from sqlalchemy.orm import DeclarativeBase
 
 from infra.db.db_config import Database
@@ -25,3 +25,9 @@ class SqlAlchemyRepository[Model: DeclarativeBase]:
             new_object = result.scalar()
             await session.commit()
             return new_object
+
+    async def update_obj(self, obj_id: int, **update_data):
+        async with self.database.get_session() as session:
+            query = update(self.model).where(self.model.id == obj_id).values(**update_data)
+            await session.execute(query)
+            await session.commit()

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 
 from domain.entities.base import BaseEntity
 from domain.events.users import NewUserEvent
@@ -18,5 +18,10 @@ class User(BaseEntity):
     @classmethod
     def create_user(cls, **create_data) -> 'User':
         user = cls(**create_data)
-        user.register_event(NewUserEvent(email=user.email.as_json()))
+        user.register_event(NewUserEvent(email=user.email, username=user.username))
         return user
+
+    def to_update(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        self.updated_at = datetime.now()

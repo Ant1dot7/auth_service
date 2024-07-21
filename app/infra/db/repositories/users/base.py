@@ -17,3 +17,7 @@ class BaseUserRepository(ABC):
     @abstractmethod
     async def exists_user(self, **filters) -> bool:
         ...
+
+    @abstractmethod
+    async def update_user(self, user: UserEntity):
+        ...

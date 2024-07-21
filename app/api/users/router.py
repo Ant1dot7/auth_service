@@ -10,7 +10,7 @@ from domain.exceptions.base import BaseDomainException
 from infra.exceptions.base import InfraException
 from infra.exceptions.token import BaseTokenException
 from infra.filters.users import GetUserByTokenFilter
-from logic.commands.users import CreateUserCommand, CreateTokenCommand
+from logic.commands.users import CreateUserCommand, CreateTokenCommand, VerifyUserCommand
 from logic.container import init_container
 from logic.mediator.main_mediator import Mediator
 from logic.queries.users import GetUserByTokenQuery
@@ -70,3 +70,13 @@ async def profile(
     except InfraException as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
     return UserOutSchema.from_entity(user)
+
+
+@router.get('/verify/{token}', status_code=status.HTTP_204_NO_CONTENT)
+async def verify(token: str, container: Container = Depends(init_container)):
+    mediator: Mediator = container.resolve(Mediator)
+    try:
+        await mediator.handle_command(VerifyUserCommand(token=token))
+    except BaseTokenException as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+

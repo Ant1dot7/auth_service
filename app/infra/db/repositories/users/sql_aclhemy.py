@@ -22,3 +22,6 @@ class UserRepository(SqlAlchemyRepository[UserDto], BaseUserRepository):
 
     async def exists_user(self, **filters) -> bool:
         return bool(await self.find_one_or_none(**filters))
+
+    async def update_user(self, user: UserEntity):
+        await self.update_obj(user.id, **convert_user_entity_to_dict(user))
