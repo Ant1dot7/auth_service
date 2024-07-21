@@ -6,6 +6,7 @@ from infra.db.db_config import Database
 from infra.db.repositories.users.base import BaseUserRepository
 from infra.db.repositories.users.sql_aclhemy import UserRepository
 from infra.db.models.users import User
+from infra.services.token.jwt import TokenJwt
 from logic.commands.users import CreateUserCommandHandler, CreateUserCommand, CreateTokenCommandHandler, \
     CreateTokenCommand
 from logic.mediator.main_mediator import Mediator
@@ -22,7 +23,7 @@ def _init_container() -> Container:
     container = Container()
     container.register(Settings, factory=get_settings, scope=Scope.singleton)
 
-    settings = container.resolve(Settings)
+    settings: Settings = container.resolve(Settings)
     container.register(
         Database,
         instance=Database(url=settings.db_url, ro_url=settings.db_url),
@@ -34,6 +35,12 @@ def _init_container() -> Container:
         database=container.resolve(Database)
     ))
 
+    container.register(
+        TokenJwt,
+        instance=TokenJwt(settings.jwt_key, settings.jwt_alg),
+        scope=Scope.singleton
+    )
+
     def init_mediator() -> Mediator:
         mediator = Mediator()
 
@@ -42,7 +49,8 @@ def _init_container() -> Container:
             user_repository=container.resolve(BaseUserRepository)
         )
         create_token_command_handler = CreateTokenCommandHandler(
-            user_repository=container.resolve(BaseUserRepository)
+            user_repository=container.resolve(BaseUserRepository),
+            token_service=container.resolve(TokenJwt),
         )
 
         # QUERY HANDLERS

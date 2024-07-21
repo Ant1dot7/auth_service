@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     postgres_port: str = Field(alias='POSTGRES_PORT')
     db_engine: str = Field(alias='DB_ENGINE')
 
+    jwt_key: str = Field(alias='JWT_KEY')
+    jwt_alg: str = Field(alias='JWT_ALG')
+
     @property
     def db_url(self) -> str:
         return (f"{self.db_engine}://{self.postgres_user}:{self.postgres_password}"

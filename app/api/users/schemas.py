@@ -28,3 +28,8 @@ class UserOutSchema(BaseModel):
             date_birth=user.date_birth,
             avatar=user.avatar,
         )
+
+
+class UserTokenOutSchema(BaseModel):
+    access_token: str
+

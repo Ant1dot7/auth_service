@@ -16,7 +16,6 @@ class UserRepository(SqlAlchemyRepository[UserDto], BaseUserRepository):
 
     async def get_user(self, **filters) -> UserEntity:
         user_dto = await self.find_one_or_none(**filters)
-        print(user_dto)
         if not user_dto:
             raise UserDoesNotExists(filters)
         return convert_user_dto_to_entity(user_dto)
