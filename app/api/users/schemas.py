@@ -38,4 +38,5 @@ class UserOutSchema(BaseModel):
 
 class UserTokenOutSchema(BaseModel):
     access_token: str
+    refresh_token: str
 

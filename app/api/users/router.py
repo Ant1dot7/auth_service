@@ -30,18 +30,6 @@ async def create_user(user_schema: UserInSchema, container: Container = Depends(
     return UserOutSchema.from_entity(user)
 
 
-# @router.get('/{user_id}')
-# async def get_user(user_id: int, container: Container = Depends(init_container)):
-#     mediator: Mediator = container.resolve(Mediator)
-#     try:
-#         user = await mediator.handle_query(GetUserQuery(filters=GetUserByIdFilter(user_id)))
-#     except InfraException as e:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-#     except BaseAppException as e:
-#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-#     return UserOutSchema.from_entity(user)
-
-
 @router.post('/token')
 async def token(
         form_data: OAuth2PasswordRequestForm = Depends(),
@@ -49,12 +37,12 @@ async def token(
 ) -> UserTokenOutSchema:
     mediator: Mediator = container.resolve(Mediator)
     try:
-        _token, *_ = await mediator.handle_command(
+        (access_token, refresh_token), *_ = await mediator.handle_command(
             CreateTokenCommand(username=form_data.username, password=form_data.password)
         )
     except (BaseDomainException, InfraException):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Invalid login or password')
-    return UserTokenOutSchema(access_token=_token)
+    return UserTokenOutSchema(access_token=access_token, refresh_token=refresh_token)
 
 
 @router.get('/profile')

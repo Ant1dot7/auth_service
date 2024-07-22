@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: auth_app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+    command: uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15.2
+    container_name: auth_postgres
+    env_file:
+      - app/.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+    ports:
+      - "5434:5432"
+
+  minio:
+    image: minio/minio:latest
+    container_name: auth_minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+
+volumes:
+  pgdata:
+  minio-data:

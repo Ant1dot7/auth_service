@@ -50,11 +50,14 @@ class CreateTokenCommandHandler(CommandHandler[CreateTokenCommand, str]):
     user_repository: BaseUserRepository
     token_service: TokenJwt
 
-    async def handle(self, command: CreateUserCommand) -> str:
+    async def handle(self, command: CreateUserCommand) -> tuple[str, str]:
         user = await self.user_repository.get_user(username=command.username)
         user.password.verify_password(command.password)
-        access_token = self.token_service.create_token(sub={"id": user.id}, expire=10)
-        return access_token
+
+        access_token = self.token_service.create_token(sub={"id": user.id}, expire=15)
+        refresh_token = self.token_service.create_token(sub={"id": user.id}, expire=3600)
+
+        return access_token, refresh_token
 
 
 @dataclass(eq=False)
