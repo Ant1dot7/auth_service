@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from domain.events.users import NewUserEvent
-from infra.common.users.utils import TokenJwt
+from infra.db.repositories.users.get_user_service import TokenJwt
 from logic.events.base import EventHandler
 
 

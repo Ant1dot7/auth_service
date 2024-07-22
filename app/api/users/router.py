@@ -68,3 +68,7 @@ async def verify(token: str, container: Container = Depends(init_container)):
     except BaseTokenException as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
+
+@router.patch('/avatar')
+async def update_avatar():
+    ...

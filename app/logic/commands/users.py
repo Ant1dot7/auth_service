@@ -4,7 +4,7 @@ from domain.entities.users import User as UserEntity
 from domain.values.users import UserName, Password, Email
 from infra.db.repositories.users.base import BaseUserRepository
 from infra.exceptions.users import UserAlreadyExists
-from infra.common.users.utils import TokenJwt, GetUserByTokenService
+from infra.db.repositories.users.get_user_service import TokenJwt, GetUserByToken
 from logic.commands.base import BaseCommand
 from logic.commands.base import CommandHandler
 from logic.mediator.main_mediator import Mediator
@@ -68,7 +68,7 @@ class VerifyUserCommand(BaseCommand):
 @dataclass(eq=False)
 class VerifyUserCommandHandler(CommandHandler[VerifyUserCommand, None]):
     user_repository: BaseUserRepository
-    get_user_service: GetUserByTokenService
+    get_user_service: GetUserByToken
 
     async def handle(self, command: VerifyUserCommand) -> None:
         user = await self.get_user_service.get_user(command.token)

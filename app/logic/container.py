@@ -3,11 +3,12 @@ from functools import lru_cache
 from punq import Container, Scope
 
 from domain.events.users import NewUserEvent
+from infra.common.utils import TokenJwt
 from infra.db.db_config import Database
 from infra.db.repositories.users.base import BaseUserRepository
 from infra.db.repositories.users.sql_aclhemy import UserRepository
 from infra.db.models.users import User
-from infra.common.users.utils import TokenJwt, GetUserByTokenService
+from infra.db.repositories.users.get_user_service import GetUserByToken
 from logic.commands.users import CreateUserCommandHandler, CreateUserCommand, CreateTokenCommandHandler, \
     CreateTokenCommand, VerifyUserCommandHandler, VerifyUserCommand
 from logic.events.users import SendVerifyMailEventHandler
@@ -44,8 +45,8 @@ def _init_container() -> Container:
     )
 
     container.register(
-        GetUserByTokenService,
-        instance=GetUserByTokenService(
+        GetUserByToken,
+        instance=GetUserByToken(
             user_repository=container.resolve(BaseUserRepository),
             token_service=container.resolve(TokenJwt),
         )
@@ -65,7 +66,7 @@ def _init_container() -> Container:
         )
         verify_user_command_handler = VerifyUserCommandHandler(
             user_repository=container.resolve(BaseUserRepository),
-            get_user_service=container.resolve(GetUserByTokenService),
+            get_user_service=container.resolve(GetUserByToken),
         )
 
         # EVENT HANDLERS
@@ -73,7 +74,7 @@ def _init_container() -> Container:
 
         # QUERY HANDLERS
         get_user_by_token_query_handler = GetVerifyUserQueryHandler(
-            get_user_service=container.resolve(GetUserByTokenService),
+            get_user_service=container.resolve(GetUserByToken),
         )
 
         # REGISTER COMMANDS
