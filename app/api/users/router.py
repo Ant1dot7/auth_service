@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import ORJSONResponse
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from punq import Container
@@ -10,7 +10,8 @@ from domain.exceptions.base import BaseDomainException
 from infra.exceptions.base import InfraException
 from infra.exceptions.token import BaseTokenException
 from infra.filters.users import GetUserByTokenFilter
-from logic.commands.users import CreateUserCommand, CreateTokenCommand, VerifyUserCommand
+from infra.s3.client import S3Client
+from logic.commands.users import CreateUserCommand, CreateTokenCommand, VerifyUserCommand, UpdateUserAvatarCommand
 from logic.container import init_container
 from logic.mediator.main_mediator import Mediator
 from logic.queries.users import GetUserByTokenQuery
@@ -69,6 +70,18 @@ async def verify(token: str, container: Container = Depends(init_container)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
 
-@router.patch('/avatar')
-async def update_avatar():
-    ...
+@router.patch('/avatar', status_code=status.HTTP_204_NO_CONTENT)
+async def update_avatar(
+        avatar: UploadFile = File(),
+        token: str = Depends(oauth2schema),
+        container: Container = Depends(init_container)
+):
+    if not avatar.content_type.startswith("image"):
+        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail='Send image file')
+    mediator: Mediator = container.resolve(Mediator)
+    try:
+        await mediator.handle_command(UpdateUserAvatarCommand(token=token, avatar=await avatar.read()))
+    except BaseTokenException as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+
+

@@ -5,9 +5,11 @@ from domain.values.users import UserName, Password, Email
 from infra.db.repositories.users.base import BaseUserRepository
 from infra.exceptions.users import UserAlreadyExists
 from infra.db.repositories.users.get_user_service import TokenJwt, GetUserByToken
-from logic.commands.base import BaseCommand
+from infra.s3.client import S3Client
+from logic.commands.base import BaseCommand, Command, CommandResult
 from logic.commands.base import CommandHandler
 from logic.mediator.main_mediator import Mediator
+from settings.config import Settings
 
 
 @dataclass(eq=False)
@@ -75,3 +77,27 @@ class VerifyUserCommandHandler(CommandHandler[VerifyUserCommand, None]):
         user.to_update(verify=True)
         await self.user_repository.update_user(user)
 
+
+@dataclass(eq=False)
+class UpdateUserAvatarCommand(BaseCommand):
+    token: str
+    avatar: bytes
+
+
+@dataclass(eq=False)
+class UpdateUserAvatarCommandHandler(CommandHandler[UpdateUserAvatarCommand, None]):
+    user_repository: BaseUserRepository
+    get_user_service: GetUserByToken
+    s3_client: S3Client
+    settings: Settings
+
+    async def handle(self, command: UpdateUserAvatarCommand) -> None:
+        user = await self.get_user_service.get_verify_user(command.token)
+        s3_path = f'{user.id}/avatar.png'
+        await self.s3_client.upload_file_bytes(
+            bucket_name=self.settings.user_bucket,
+            file_bytes=command.avatar,
+            s3_path=s3_path,
+        )
+        user.to_update(avatar=f'{self.settings.user_bucket}/{s3_path}')
+        await self.user_repository.update_user(user)

@@ -19,6 +19,7 @@ sqlalchemy = "^2.0.31"
 alembic = "^1.13.2"
 orjson = "^3.10.6"
 pyjwt = "^2.8.0"
+aiobotocore = "^2.13.1"
 
 
 [tool.poetry.group.dev.dependencies]

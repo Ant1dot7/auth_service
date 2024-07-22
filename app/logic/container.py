@@ -9,8 +9,10 @@ from infra.db.repositories.users.base import BaseUserRepository
 from infra.db.repositories.users.sql_aclhemy import UserRepository
 from infra.db.models.users import User
 from infra.db.repositories.users.get_user_service import GetUserByToken
+from infra.s3.client import S3Client
 from logic.commands.users import CreateUserCommandHandler, CreateUserCommand, CreateTokenCommandHandler, \
-    CreateTokenCommand, VerifyUserCommandHandler, VerifyUserCommand
+    CreateTokenCommand, VerifyUserCommandHandler, VerifyUserCommand, UpdateUserAvatarCommandHandler, \
+    UpdateUserAvatarCommand
 from logic.events.users import SendVerifyMailEventHandler
 from logic.mediator.main_mediator import Mediator
 from logic.queries.users import GetUserByTokenQuery, GetVerifyUserQueryHandler
@@ -51,6 +53,15 @@ def _init_container() -> Container:
             token_service=container.resolve(TokenJwt),
         )
     )
+    container.register(
+        S3Client,
+        instance=S3Client(
+            aws_access_key_id=settings.aws_access_key_id,
+            aws_secret_access_key=settings.aws_secret_access_key,
+            endpoint_url=settings.s3_url,
+        ),
+        scope=Scope.singleton,
+    )
 
     def init_mediator() -> Mediator:
         mediator = Mediator()
@@ -68,6 +79,12 @@ def _init_container() -> Container:
             user_repository=container.resolve(BaseUserRepository),
             get_user_service=container.resolve(GetUserByToken),
         )
+        update_user_avatar_command_handler = UpdateUserAvatarCommandHandler(
+            user_repository=container.resolve(BaseUserRepository),
+            get_user_service=container.resolve(GetUserByToken),
+            s3_client=container.resolve(S3Client),
+            settings=settings,
+        )
 
         # EVENT HANDLERS
         send_verify_token = SendVerifyMailEventHandler(token_service=container.resolve(TokenJwt))
@@ -81,6 +98,7 @@ def _init_container() -> Container:
         mediator.register_command(CreateUserCommand, [create_user_command_handler])
         mediator.register_command(CreateTokenCommand, [create_token_command_handler])
         mediator.register_command(VerifyUserCommand, [verify_user_command_handler])
+        mediator.register_command(UpdateUserAvatarCommand, [update_user_avatar_command_handler])
 
         # REGISTER QUERY
         mediator.register_query(GetUserByTokenQuery, get_user_by_token_query_handler)
