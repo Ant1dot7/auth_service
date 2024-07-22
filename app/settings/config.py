@@ -13,9 +13,6 @@ class Settings(BaseSettings):
     jwt_key: str = Field(alias='JWT_KEY')
     jwt_alg: str = Field(alias='JWT_ALG')
 
-    minio_root_user: str = Field(alias='MINIO_ROOT_USER')
-    minio_root_password: str = Field(alias='MINIO_ROOT_PASSWORD')
-
     aws_access_key_id: str = Field(alias='AWS_ACCESS_KEY_ID')
     aws_secret_access_key: str = Field(alias='AWS_SECRET_ACCESS_KEY')
     s3_url: str = Field(alias='S3_URL')

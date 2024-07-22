@@ -30,8 +30,9 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
-    env_file:
-      - app/.env
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
     command: server /data --console-address ":9001"
     volumes:
       - minio-data:/data
