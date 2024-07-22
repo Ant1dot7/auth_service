@@ -14,4 +14,4 @@ class SendVerifyMailEventHandler(EventHandler):
             sub={"username": event.username.as_json()},
             expire=30
         )
-        print(token)
+        print(token) # TODO отправлять на мыло

@@ -14,4 +14,7 @@ class User(BaseModel):
     email: Mapped[str]
     verify: Mapped[bool] = mapped_column(Boolean, default=False)
     date_birth: Mapped[date | None]
+    first_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    bio: Mapped[str | None]
     avatar: Mapped[str | None]

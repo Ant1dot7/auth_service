@@ -13,6 +13,9 @@ class User(BaseEntity):
     email: Email
     verify: bool = field(default=False, kw_only=True)
     date_birth: date = field(default=None, kw_only=True)
+    first_name: str = field(default=None, kw_only=True) # TODO переделать в values
+    last_name: str = field(default=None, kw_only=True) # TODO переделать в values
+    bio: str = field(default=None, kw_only=True) # TODO переделать в values
     avatar: str = field(default=None, kw_only=True)
 
     @classmethod

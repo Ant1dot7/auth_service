@@ -9,7 +9,10 @@ class UserInSchema(BaseModel):
     username: str
     password: str
     email: EmailStr
-    date_birth: date | None
+    date_birth: date | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    bio: str | None = None
 
 
 class UserOutSchema(BaseModel):
@@ -17,6 +20,9 @@ class UserOutSchema(BaseModel):
     username: str
     email: EmailStr
     date_birth: date | None
+    first_name: str | None
+    last_name: str | None
+    bio: str | None
     verify: bool
     avatar: str | None
     created_at: datetime
@@ -29,6 +35,9 @@ class UserOutSchema(BaseModel):
             username=user.username.as_json(),
             email=user.email.as_json(),
             date_birth=user.date_birth,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            bio=user.bio,
             verify=user.verify,
             avatar=user.avatar,
             created_at=user.created_at,
@@ -40,3 +49,9 @@ class UserTokenOutSchema(BaseModel):
     access_token: str
     refresh_token: str
 
+
+class UserUpdateSchema(BaseModel):
+    date_birth: date | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    bio: str | None = None

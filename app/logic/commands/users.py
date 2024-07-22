@@ -101,3 +101,20 @@ class UpdateUserAvatarCommandHandler(CommandHandler[UpdateUserAvatarCommand, Non
         )
         user.to_update(avatar=f'{self.settings.user_bucket}/{s3_path}')
         await self.user_repository.update_user(user)
+
+
+@dataclass(eq=False)
+class UpdateUserDataCommand(BaseCommand):
+    token: str
+    data: dict
+
+
+@dataclass(eq=False)
+class UpdateUserDataCommandHandler(CommandHandler[UpdateUserDataCommand, None]):
+    user_repository: BaseUserRepository
+    get_user_service: GetUserByToken
+
+    async def handle(self, command: UpdateUserDataCommand) -> None:
+        user = await self.get_user_service.get_verify_user(command.token)
+        user.to_update(**command.data)
+        await self.user_repository.update_user(user)

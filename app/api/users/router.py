@@ -4,14 +4,14 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from punq import Container
 from starlette import status
 
-from api.users.schemas import UserInSchema, UserOutSchema, UserTokenOutSchema
+from api.users.schemas import UserInSchema, UserOutSchema, UserTokenOutSchema, UserUpdateSchema
 from common.exceptions import BaseAppException
 from domain.exceptions.base import BaseDomainException
 from infra.exceptions.base import InfraException
 from infra.exceptions.token import BaseTokenException
 from infra.filters.users import GetUserByTokenFilter
-from infra.s3.client import S3Client
-from logic.commands.users import CreateUserCommand, CreateTokenCommand, VerifyUserCommand, UpdateUserAvatarCommand
+from logic.commands.users import CreateUserCommand, CreateTokenCommand, VerifyUserCommand, UpdateUserAvatarCommand, \
+    UpdateUserDataCommand
 from logic.container import init_container
 from logic.mediator.main_mediator import Mediator
 from logic.queries.users import GetUserByTokenQuery
@@ -85,3 +85,19 @@ async def update_avatar(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
 
+@router.patch('/update', status_code=status.HTTP_204_NO_CONTENT)
+async def update_user_data(
+        update_data: UserUpdateSchema,
+        token: str = Depends(oauth2schema),
+        container: Container = Depends(init_container)
+):
+    update_dict = update_data.model_dump(exclude_none=True)
+    if not update_dict:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Empty data')
+    mediator: Mediator = container.resolve(Mediator)
+    try:
+        await mediator.handle_command(UpdateUserDataCommand(token=token, data=update_dict))
+    except BaseTokenException as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except InfraException as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))

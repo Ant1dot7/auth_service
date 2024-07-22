@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from typing import Any, Mapping
 
 from domain.entities.users import User as UserEntity
@@ -11,6 +12,9 @@ def convert_user_entity_to_dict(user: UserEntity) -> Mapping[str, Any]:
         'password': user.password.as_json(),
         'email': user.email.as_json(),
         'date_birth': user.date_birth,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'bio': user.bio,
         'avatar': user.avatar,
         'verify': user.verify,
         'created_at': user.created_at,
@@ -25,6 +29,9 @@ def convert_user_dto_to_entity(user: UserDto) -> UserEntity:
         password=Password(value=user.password, need_hash=False, _need_validate=False),
         email=Email(user.email, _need_validate=False),
         date_birth=user.date_birth,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        bio=user.bio,
         avatar=user.avatar,
         verify=user.verify,
         created_at=user.created_at,
