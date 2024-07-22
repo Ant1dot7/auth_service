@@ -25,7 +25,9 @@ oauth2schema = OAuth2PasswordBearer(tokenUrl="users/token", scheme_name="JWT")
 async def create_user(user_schema: UserInSchema, container: Container = Depends(init_container)):
     mediator: Mediator = container.resolve(Mediator)
     try:
-        user, *_ = await mediator.handle_command(CreateUserCommand(**user_schema.model_dump()))
+        user, *_ = await mediator.handle_command(
+            CreateUserCommand(**user_schema.model_dump())
+        )
     except BaseAppException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return UserOutSchema.from_entity(user)
@@ -97,6 +99,9 @@ async def update_user_data(
     mediator: Mediator = container.resolve(Mediator)
     try:
         await mediator.handle_command(UpdateUserDataCommand(token=token, data=update_dict))
+
+    except BaseDomainException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except BaseTokenException as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
     except InfraException as e:

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from domain.entities.users import User as UserEntity
-from domain.values.users import UserName, Password, Email
+from domain.values.users import UserName, Password, Email, Name
 from infra.db.repositories.users.base import BaseUserRepository
 from infra.exceptions.users import UserAlreadyExists
 from infra.db.repositories.users.get_user_service import TokenJwt, GetUserByToken
@@ -18,6 +18,9 @@ class CreateUserCommand(BaseCommand):
     password: str
     email: str
     date_birth: str | None
+    first_name: str | None
+    last_name: str | None
+    bio: str | None
 
 
 @dataclass(eq=False)
@@ -34,6 +37,9 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
             password=Password(command.password),
             email=Email(command.email),
             date_birth=command.date_birth,
+            first_name=Name(command.first_name),
+            last_name=Name(command.last_name),
+            bio=command.bio,
         )
         events = user.pull_events()  # TODO email
         user = await self.user_repository.create_user(user)

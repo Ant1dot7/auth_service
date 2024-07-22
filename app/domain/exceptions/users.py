@@ -28,3 +28,10 @@ class InvalidPasswordException(BaseDomainException):
     @property
     def message(self) -> str:
         return 'Invalid password'
+
+
+@dataclass(eq=False)
+class UpdateTypeException(BaseDomainException):
+    @property
+    def message(self) -> str:
+        return f'Error type new value'

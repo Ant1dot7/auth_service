@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
+from domain.exceptions.users import UpdateTypeException
+
 
 @dataclass(eq=False)
 class BaseValue[Value: Any](ABC):
@@ -14,6 +16,13 @@ class BaseValue[Value: Any](ABC):
 
     def as_json(self) -> Value:
         return self.value
+
+    def update_value(self, new_value: Any):
+
+        if self.value is not None and self.value.__class__ != new_value.__class__:
+            raise UpdateTypeException
+        self.value = new_value
+        self.validate()
 
     @abstractmethod
     def validate(self):

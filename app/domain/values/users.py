@@ -2,12 +2,13 @@ from dataclasses import dataclass
 
 from passlib.hash import bcrypt
 
-from domain.exceptions.users import ShortValueException, InvalidPasswordException, InvalidEmailException
+from domain.exceptions.users import ShortValueException, InvalidPasswordException, InvalidEmailException, \
+    UpdateTypeException
 from domain.values.base import BaseValue
 from email_validator import validate_email
 
 
-@dataclass(eq=False)
+@dataclass(eq=False, slots=True)
 class UserName(BaseValue[str]):
     value: str
 
@@ -17,7 +18,7 @@ class UserName(BaseValue[str]):
 
 
 @dataclass(eq=False)
-class Password(BaseValue):
+class Password(BaseValue[str]):
     value: str
     need_hash: bool = True
 
@@ -39,7 +40,7 @@ class Password(BaseValue):
 
 
 @dataclass(eq=False)
-class Email(BaseValue):
+class Email(BaseValue[str]):
     value: str
 
     def validate(self):
@@ -47,3 +48,23 @@ class Email(BaseValue):
             validate_email(self.value)
         except Exception:
             raise InvalidEmailException(email=self.value)
+
+
+@dataclass(eq=False)
+class Name(BaseValue[str | None]):
+    value: str | None
+
+    def __post_init__(self):
+        if self.value is not None:
+            super().__post_init__()
+            self.value = self.value.capitalize()
+
+    def validate(self):
+        if len(self.value) < 2:
+            raise ShortValueException(value=self.value, length=2)
+
+    def update_value(self, new_value):
+        if not isinstance(new_value, (str, type(None))):
+            raise UpdateTypeException()
+        super().update_value(new_value)
+        self.value = new_value.capitalize()

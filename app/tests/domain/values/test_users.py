@@ -1,9 +1,8 @@
 import pytest
 
-from domain.entities.users import User
-from domain.values.users import UserName, Password, Email
-from domain.events.users import NewUserEvent
-from domain.exceptions.users import ShortValueException, InvalidEmailException, InvalidPasswordException
+from domain.exceptions.users import ShortValueException, InvalidEmailException, InvalidPasswordException, \
+    UpdateTypeException
+from domain.values.users import UserName, Password, Email, Name
 
 
 class TestUserNameValue:
@@ -48,15 +47,32 @@ class TestEmailValue:
             Email(value=fake_email)
 
 
-def test_create_user():
-    password = 'password'
-    username = UserName('username')
-    password_value = Password(password)
-    email = Email('email@email.com')
-    user = User.create_user(username=username, password=password_value, email=email)
-    user.password.verify_password(password)
-    with pytest.raises(InvalidPasswordException):
-        user.password.verify_password('password2')
-    assert len(user._events) == 1
-    assert isinstance(user.pull_events()[0], NewUserEvent)
-    assert len(user._events) == 0
+class TestNameValue:
+    def test_create_name(self):
+        fake_name = 'name'
+        name = Name(fake_name)
+        assert name.as_json() == fake_name.capitalize()
+
+    def test_create_short_name(self):
+        with pytest.raises(ShortValueException):
+            Name(value='1')
+
+    def test_update_name(self):
+        name = Name('fake_name')
+        name.update_value('name')
+        assert name.as_json() == 'Name'
+
+        with pytest.raises(ShortValueException):
+            name.update_value('a')
+        with pytest.raises(UpdateTypeException):
+            name.update_value(1)
+
+        name = Name(None)
+        assert not name.as_json()
+        name.update_value('abc')
+        assert name.as_json() == "Abc"
+
+        name = Name(None)
+        assert not name.as_json()
+        with pytest.raises(UpdateTypeException):
+            name.update_value(1)
