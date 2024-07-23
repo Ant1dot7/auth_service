@@ -9,6 +9,7 @@ from fastapi.responses import ORJSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from api.users.schemas import (
+    CreateUserOutSchema,
     UserInSchema,
     UserOutSchema,
     UserTokenOutSchema,
@@ -38,19 +39,22 @@ router = APIRouter(prefix="/users", default_response_class=ORJSONResponse)
 oauth2schema = OAuth2PasswordBearer(tokenUrl="users/token", scheme_name="JWT")
 
 
-@router.post("/")
-async def create_user(user_schema: UserInSchema, container: Container = Depends(init_container)):
+@router.post("/", status_code=status.HTTP_201_CREATED)
+async def create_user(
+        user_schema: UserInSchema,
+        container: Container = Depends(init_container),
+) -> CreateUserOutSchema:
     mediator: Mediator = container.resolve(Mediator)
     try:
-        user, *_ = await mediator.handle_command(
+        user_id, *_ = await mediator.handle_command(
             CreateUserCommand(**user_schema.model_dump()),
         )
     except BaseAppException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    return UserOutSchema.from_entity(user)
+    return CreateUserOutSchema(id=user_id)
 
 
-@router.post("/token")
+@router.post("/token", status_code=status.HTTP_200_OK)
 async def token(
         form_data: OAuth2PasswordRequestForm = Depends(),
         container: Container = Depends(init_container),
@@ -65,14 +69,14 @@ async def token(
     return UserTokenOutSchema(access_token=access_token, refresh_token=refresh_token)
 
 
-@router.get("/profile")
+@router.get("/profile", status_code=status.HTTP_200_OK)
 async def profile(
-        token: str = Depends(oauth2schema),
+        access_token: str = Depends(oauth2schema),
         container: Container = Depends(init_container),
 ):
     mediator: Mediator = container.resolve(Mediator)
     try:
-        user = await mediator.handle_query(GetUserByTokenQuery(GetUserByTokenFilter(token=token)))
+        user = await mediator.handle_query(GetUserByTokenQuery(GetUserByTokenFilter(token=access_token)))
     except BaseTokenException as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
     except InfraException as e:
@@ -81,10 +85,10 @@ async def profile(
 
 
 @router.get("/verify/{token}", status_code=status.HTTP_204_NO_CONTENT)
-async def verify(token: str, container: Container = Depends(init_container)):
+async def verify(access_token: str, container: Container = Depends(init_container)):
     mediator: Mediator = container.resolve(Mediator)
     try:
-        await mediator.handle_command(VerifyUserCommand(token=token))
+        await mediator.handle_command(VerifyUserCommand(token=access_token))
     except BaseTokenException as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
@@ -92,14 +96,14 @@ async def verify(token: str, container: Container = Depends(init_container)):
 @router.patch("/avatar", status_code=status.HTTP_204_NO_CONTENT)
 async def update_avatar(
         avatar: UploadFile = File(),
-        token: str = Depends(oauth2schema),
+        access_token: str = Depends(oauth2schema),
         container: Container = Depends(init_container),
 ):
     if not avatar.content_type.startswith("image"):
         raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail="Send image file")
     mediator: Mediator = container.resolve(Mediator)
     try:
-        await mediator.handle_command(UpdateUserAvatarCommand(token=token, avatar=await avatar.read()))
+        await mediator.handle_command(UpdateUserAvatarCommand(token=access_token, avatar=await avatar.read()))
     except BaseTokenException as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
@@ -107,7 +111,7 @@ async def update_avatar(
 @router.patch("/update", status_code=status.HTTP_204_NO_CONTENT)
 async def update_user_data(
         update_data: UserUpdateSchema,
-        token: str = Depends(oauth2schema),
+        access_token: str = Depends(oauth2schema),
         container: Container = Depends(init_container),
 ):
     update_dict = update_data.model_dump(exclude_none=True)
@@ -115,7 +119,7 @@ async def update_user_data(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty data")
     mediator: Mediator = container.resolve(Mediator)
     try:
-        await mediator.handle_command(UpdateUserDataCommand(token=token, data=update_dict))
+        await mediator.handle_command(UpdateUserDataCommand(token=access_token, data=update_dict))
 
     except BaseDomainException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

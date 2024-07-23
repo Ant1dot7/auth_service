@@ -20,12 +20,14 @@ class UserRoleOutSchema(BaseModel):
 
     @classmethod
     def from_entity(cls, user_role: UserRole):
-        print(user_role)
         return cls(id=user_role.id, role=user_role.role)
 
 
-class UserOutSchema(BaseModel):
+class CreateUserOutSchema(BaseModel):
     id: int
+
+
+class UserOutSchema(CreateUserOutSchema):
     username: str
     email: EmailStr
     date_birth: date | None

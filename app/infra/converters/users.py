@@ -12,7 +12,7 @@ from infra.db.models.users import User as UserDto, UserRole as UserRoleDto
 
 
 def convert_user_entity_to_dict(user: UserEntity) -> Mapping[str, Any]:
-    return {
+    entity_dict = {
         "username": user.username.as_json(),
         "password": user.password.as_json(),
         "email": user.email.as_json(),
@@ -24,8 +24,10 @@ def convert_user_entity_to_dict(user: UserEntity) -> Mapping[str, Any]:
         "verify": user.verify,
         "created_at": user.created_at,
         "updated_at": user.updated_at,
-        "role_id": user.role.id,
     }
+    if user.role.id is not None:
+        entity_dict["role_id"] = user.role.id
+    return entity_dict
 
 
 def convert_user_role_dto_to_entity(user_role: UserRoleDto) -> UserRoleEntity:
@@ -50,4 +52,21 @@ def convert_user_dto_to_entity(user: UserDto) -> UserEntity:
         created_at=user.created_at,
         updated_at=user.updated_at,
         role=convert_user_role_dto_to_entity(user.role),
+    )
+
+
+def convert_user_dto_not_load_to_entity(user: UserDto) -> UserEntity:
+    return UserEntity(
+        id=user.id,
+        username=UserName(value=user.username, _need_validate=False),
+        password=Password(value=user.password, need_hash=False, _need_validate=False),
+        email=Email(user.email, _need_validate=False),
+        date_birth=user.date_birth,
+        first_name=Name(user.first_name, _need_validate=False),
+        last_name=Name(user.last_name, _need_validate=False),
+        bio=user.bio,
+        avatar=user.avatar,
+        verify=user.verify,
+        created_at=user.created_at,
+        updated_at=user.updated_at,
     )

@@ -29,12 +29,12 @@ class CreateUserCommand(BaseCommand):
 
 
 @dataclass(eq=False)
-class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
+class CreateUserCommandHandler(CommandHandler[CreateUserCommand, int]):
     user_repository: BaseUserRepository
     role_repository: BaseUserRoleRepository
     _mediator: Mediator
 
-    async def handle(self, command: CreateUserCommand) -> UserEntity:
+    async def handle(self, command: CreateUserCommand) -> int:
         if await self.user_repository.exists_user(username=command.username):  # Todo рефактор
             raise UserAlreadyExists(command.username)
         role = await self.role_repository.get_role(role=RoleEnum.customer.value)
@@ -49,9 +49,9 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
             role=role,
         )
         events = user.pull_events()  # TODO email
-        user = await self.user_repository.create_user(user)
+        user_id = await self.user_repository.create_user(user)
         await self._mediator.handle_events(events)
-        return user
+        return user_id
 
 
 @dataclass(eq=False)
@@ -66,7 +66,7 @@ class CreateTokenCommandHandler(CommandHandler[CreateTokenCommand, str]):
     token_service: TokenJwt
 
     async def handle(self, command: CreateUserCommand) -> tuple[str, str]:
-        user = await self.user_repository.get_user(username=command.username)
+        user = await self.user_repository.get_user_not_load(username=command.username)
         user.password.verify_password(command.password)
 
         access_token = self.token_service.create_token(sub={"id": user.id}, expire=15)
@@ -86,7 +86,7 @@ class VerifyUserCommandHandler(CommandHandler[VerifyUserCommand, None]):
     get_user_service: GetUserByToken
 
     async def handle(self, command: VerifyUserCommand) -> None:
-        user = await self.get_user_service.get_user(command.token)
+        user = await self.get_user_service.get_user(command.token, loaded=False)
         user.to_update(verify=True)
         await self.user_repository.update_user(user)
 
@@ -105,7 +105,7 @@ class UpdateUserAvatarCommandHandler(CommandHandler[UpdateUserAvatarCommand, Non
     settings: Settings
 
     async def handle(self, command: UpdateUserAvatarCommand) -> None:
-        user = await self.get_user_service.get_verify_user(command.token)
+        user = await self.get_user_service.get_verify_user(command.token, loaded=False)
         s3_path = f"{user.id}/avatar.png"
         await self.s3_client.upload_file_bytes(
             bucket_name=self.settings.user_bucket,
@@ -128,6 +128,6 @@ class UpdateUserDataCommandHandler(CommandHandler[UpdateUserDataCommand, None]):
     get_user_service: GetUserByToken
 
     async def handle(self, command: UpdateUserDataCommand) -> None:
-        user = await self.get_user_service.get_verify_user(command.token)
+        user = await self.get_user_service.get_verify_user(command.token, loaded=False)
         user.to_update(**command.data)
         await self.user_repository.update_user(user)

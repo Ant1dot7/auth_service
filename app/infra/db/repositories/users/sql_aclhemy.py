@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from domain.entities.users import User as UserEntity, UserRole as UserRoleEntity
 from infra.converters.users import (
+    convert_user_dto_not_load_to_entity,
     convert_user_dto_to_entity,
     convert_user_entity_to_dict,
     convert_user_role_dto_to_entity,
@@ -23,9 +24,9 @@ class UserRoleRepository(SqlAlchemyRepository[UserRoleDto], BaseUserRoleReposito
 @dataclass(eq=False)
 class UserRepository(SqlAlchemyRepository[UserDto], BaseUserRepository):
 
-    async def create_user(self, user: UserEntity) -> UserEntity:
+    async def create_user(self, user: UserEntity) -> int:
         user_dto = await self.add_one(**convert_user_entity_to_dict(user))
-        return convert_user_dto_to_entity(user_dto)
+        return user_dto.id
 
     async def get_user(self, **filters) -> UserEntity:
         async with self.database.get_read_only_session() as session:
@@ -40,3 +41,7 @@ class UserRepository(SqlAlchemyRepository[UserDto], BaseUserRepository):
 
     async def update_user(self, user: UserEntity):
         await self.update_obj(user.id, **convert_user_entity_to_dict(user))
+
+    async def get_user_not_load(self, **filters) -> UserEntity:
+        user = await self.find_one_or_none(**filters)
+        return convert_user_dto_not_load_to_entity(user)

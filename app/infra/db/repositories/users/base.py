@@ -14,7 +14,7 @@ class BaseUserRoleRepository(ABC):
 @dataclass(eq=False)
 class BaseUserRepository(ABC):
     @abstractmethod
-    async def create_user(self, user: UserEntity) -> UserEntity:
+    async def create_user(self, user: UserEntity) -> int:
         ...
 
     @abstractmethod
@@ -27,4 +27,8 @@ class BaseUserRepository(ABC):
 
     @abstractmethod
     async def update_user(self, user: UserEntity):
+        ...
+
+    @abstractmethod
+    async def get_user_not_load(self, **filters) -> UserEntity:
         ...
