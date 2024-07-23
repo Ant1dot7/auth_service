@@ -28,7 +28,7 @@ class S3Client:
             self,
             bucket_name: str,
             file_bytes: bytes | BinaryIO,
-            s3_path: str
+            s3_path: str,
     ) -> None:
         async with self.get_client() as client:
             await client.put_object(
@@ -41,4 +41,3 @@ class S3Client:
     #         self.client.download_file(self.bucket_name, s3_path, file_path)
     #     except ClientError:
     #         print(f"Файл {s3_path} не найден.")
-

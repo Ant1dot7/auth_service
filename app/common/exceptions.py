@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class BaseAppException(Exception):
     @property
     def message(self) -> str:
-        return 'Unknown app error'
+        return "Unknown app error"
 
     def __str__(self):
         return self.message

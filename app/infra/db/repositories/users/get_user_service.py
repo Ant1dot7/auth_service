@@ -14,7 +14,7 @@ class GetUserByToken(ABC):
 
     async def get_user(self, token: str) -> User:
         payload = self.token_service.verify_jwt_token(token)
-        return await self.user_repository.get_user(**payload['sub'])
+        return await self.user_repository.get_user(**payload["sub"])
 
     async def get_verify_user(self, token: str):
         user = await self.get_user(token)

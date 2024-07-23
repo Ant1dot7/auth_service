@@ -2,13 +2,17 @@ from dataclasses import dataclass
 
 from domain.entities.enums import RoleEnum
 from domain.entities.users import User as UserEntity
-from domain.values.users import UserName, Password, Email, Name
+from domain.values.users import (
+    Email,
+    Name,
+    Password,
+    UserName,
+)
 from infra.db.repositories.users.base import BaseUserRepository, BaseUserRoleRepository
+from infra.db.repositories.users.get_user_service import GetUserByToken, TokenJwt
 from infra.exceptions.users import UserAlreadyExists
-from infra.db.repositories.users.get_user_service import TokenJwt, GetUserByToken
 from infra.s3.client import S3Client
-from logic.commands.base import BaseCommand, Command, CommandResult
-from logic.commands.base import CommandHandler
+from logic.commands.base import BaseCommand, CommandHandler
 from logic.mediator.main_mediator import Mediator
 from settings.config import Settings
 
@@ -102,13 +106,13 @@ class UpdateUserAvatarCommandHandler(CommandHandler[UpdateUserAvatarCommand, Non
 
     async def handle(self, command: UpdateUserAvatarCommand) -> None:
         user = await self.get_user_service.get_verify_user(command.token)
-        s3_path = f'{user.id}/avatar.png'
+        s3_path = f"{user.id}/avatar.png"
         await self.s3_client.upload_file_bytes(
             bucket_name=self.settings.user_bucket,
             file_bytes=command.avatar,
             s3_path=s3_path,
         )
-        user.to_update(avatar=f'{self.settings.user_bucket}/{s3_path}')
+        user.to_update(avatar=f"{self.settings.user_bucket}/{s3_path}")
         await self.user_repository.update_user(user)
 
 

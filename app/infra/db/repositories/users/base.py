@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from domain.entities.users import User as UserEntity
-from domain.entities.users import UserRole as UserRoleEntity
+from domain.entities.users import User as UserEntity, UserRole as UserRoleEntity
 
 
 @dataclass(eq=False)

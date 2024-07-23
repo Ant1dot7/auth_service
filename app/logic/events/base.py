@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-
-from typing import TypeVar, Any, Generic
+from typing import Any, Generic, TypeVar
 
 from domain.events.base import BaseEvent
 
-EventResult = TypeVar('EventResult', bound=Any)
-Event = TypeVar('Event', bound=BaseEvent)
+
+EventResult = TypeVar("EventResult", bound=Any)
+Event = TypeVar("Event", bound=BaseEvent)
 
 
 @dataclass(eq=False)

@@ -1,28 +1,29 @@
 from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Sequence, Any
+from typing import Any
 
 from logic.commands.base import Command, CommandHandler, CommandResult
 from logic.events.base import Event, EventHandler, EventResult
-from logic.queries.base import QueryHandler, BaseQuery
+from logic.queries.base import BaseQuery, QueryHandler
 
 
 @dataclass(eq=False)
 class Mediator:
     command_maps: dict[Command, list[CommandHandler]] = field(
         default_factory=lambda: defaultdict(list),
-        kw_only=True
+        kw_only=True,
     )
     event_maps: dict[Event, list[EventHandler]] = field(
         default_factory=lambda: defaultdict(list),
-        kw_only=True
+        kw_only=True,
     )
     queries_map: dict[type[BaseQuery], QueryHandler] = field(
         default_factory=dict,
-        kw_only=True
+        kw_only=True,
     )
 
-    def register_command(self,command: type[Command],command_handlers: Sequence[CommandHandler]):
+    def register_command(self, command: type[Command], command_handlers: Sequence[CommandHandler]):
         self.command_maps[command].extend(command_handlers)
 
     def register_event(self, event: type[Event], event_handlers: Sequence[EventHandler]):

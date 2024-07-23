@@ -10,7 +10,7 @@ class ShortValueException(BaseDomainException):
 
     @property
     def message(self) -> str:
-        return f'The length value:{self.value} must be {self.length} or more characters'
+        return f"The length value:{self.value} must be {self.length} or more characters"
 
 
 @dataclass(eq=False)
@@ -19,7 +19,7 @@ class InvalidEmailException(BaseDomainException):
 
     @property
     def message(self) -> str:
-        return f'email validation error. Email: {self.email}'
+        return f"email validation error. Email: {self.email}"
 
 
 @dataclass(eq=False)
@@ -27,11 +27,11 @@ class InvalidPasswordException(BaseDomainException):
 
     @property
     def message(self) -> str:
-        return 'Invalid password'
+        return "Invalid password"
 
 
 @dataclass(eq=False)
 class UpdateTypeException(BaseDomainException):
     @property
     def message(self) -> str:
-        return f'Error type new value'
+        return "Error type new value"

@@ -4,7 +4,12 @@ from datetime import date
 from domain.entities.base import BaseEntity
 from domain.entities.enums import RoleEnum
 from domain.events.users import NewUserEvent
-from domain.values.users import UserName, Password, Email, Name
+from domain.values.users import (
+    Email,
+    Name,
+    Password,
+    UserName,
+)
 
 
 @dataclass(eq=False)
@@ -25,10 +30,10 @@ class User(BaseEntity):
     bio: str = field(default=None, kw_only=True)
     avatar: str = field(default=None, kw_only=True)
 
-    role: UserRole = field(default=UserRole(RoleEnum.customer), kw_only=True)
+    role: UserRole = field(default=UserRole(RoleEnum.customer.value), kw_only=True)
 
     @classmethod
-    def create_user(cls, **create_data) -> 'User':
+    def create_user(cls, **create_data) -> "User":
         user = cls(**create_data)
         user.register_event(NewUserEvent(email=user.email, username=user.username))
         return user

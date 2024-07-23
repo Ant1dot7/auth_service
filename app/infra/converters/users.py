@@ -1,26 +1,29 @@
-from dataclasses import asdict
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
-from domain.entities.users import User as UserEntity
-from domain.entities.users import UserRole as UserRoleEntity
-from domain.values.users import UserName, Password, Email, Name
-from infra.db.models.users import User as UserDto
-from infra.db.models.users import UserRole as UserRoleDto
+from domain.entities.users import User as UserEntity, UserRole as UserRoleEntity
+from domain.values.users import (
+    Email,
+    Name,
+    Password,
+    UserName,
+)
+from infra.db.models.users import User as UserDto, UserRole as UserRoleDto
 
 
 def convert_user_entity_to_dict(user: UserEntity) -> Mapping[str, Any]:
     return {
-        'username': user.username.as_json(),
-        'password': user.password.as_json(),
-        'email': user.email.as_json(),
-        'date_birth': user.date_birth,
-        'first_name': user.first_name.as_json(),
-        'last_name': user.last_name.as_json(),
-        'bio': user.bio,
-        'avatar': user.avatar,
-        'verify': user.verify,
-        'created_at': user.created_at,
-        'updated_at': user.updated_at,
+        "username": user.username.as_json(),
+        "password": user.password.as_json(),
+        "email": user.email.as_json(),
+        "date_birth": user.date_birth,
+        "first_name": user.first_name.as_json(),
+        "last_name": user.last_name.as_json(),
+        "bio": user.bio,
+        "avatar": user.avatar,
+        "verify": user.verify,
+        "created_at": user.created_at,
+        "updated_at": user.updated_at,
         "role_id": user.role.id,
     }
 
@@ -28,7 +31,7 @@ def convert_user_entity_to_dict(user: UserEntity) -> Mapping[str, Any]:
 def convert_user_role_dto_to_entity(user_role: UserRoleDto) -> UserRoleEntity:
     return UserRoleEntity(
         id=user_role.id,
-        role=user_role.role
+        role=user_role.role,
     )
 
 
@@ -46,5 +49,5 @@ def convert_user_dto_to_entity(user: UserDto) -> UserEntity:
         verify=user.verify,
         created_at=user.created_at,
         updated_at=user.updated_at,
-        role=convert_user_role_dto_to_entity(user.role)
+        role=convert_user_role_dto_to_entity(user.role),
     )

@@ -5,18 +5,27 @@ from punq import Container, Scope
 from domain.events.users import NewUserEvent
 from infra.common.utils import TokenJwt
 from infra.db.db_config import Database
-from infra.db.repositories.users.base import BaseUserRepository, BaseUserRoleRepository
-from infra.db.repositories.users.sql_aclhemy import UserRepository, UserRoleRepository
 from infra.db.models.users import User, UserRole
+from infra.db.repositories.users.base import BaseUserRepository, BaseUserRoleRepository
 from infra.db.repositories.users.get_user_service import GetUserByToken
+from infra.db.repositories.users.sql_aclhemy import UserRepository, UserRoleRepository
 from infra.s3.client import S3Client
-from logic.commands.users import CreateUserCommandHandler, CreateUserCommand, CreateTokenCommandHandler, \
-    CreateTokenCommand, VerifyUserCommandHandler, VerifyUserCommand, UpdateUserAvatarCommandHandler, \
-    UpdateUserAvatarCommand, UpdateUserDataCommandHandler, UpdateUserDataCommand
+from logic.commands.users import (
+    CreateTokenCommand,
+    CreateTokenCommandHandler,
+    CreateUserCommand,
+    CreateUserCommandHandler,
+    UpdateUserAvatarCommand,
+    UpdateUserAvatarCommandHandler,
+    UpdateUserDataCommand,
+    UpdateUserDataCommandHandler,
+    VerifyUserCommand,
+    VerifyUserCommandHandler,
+)
 from logic.events.users import SendVerifyMailEventHandler
 from logic.mediator.main_mediator import Mediator
 from logic.queries.users import GetUserByTokenQuery, GetVerifyUserQueryHandler
-from settings.config import Settings, get_settings
+from settings.config import get_settings, Settings
 
 
 @lru_cache(1)
@@ -33,22 +42,26 @@ def _init_container() -> Container:
     container.register(
         Database,
         instance=Database(url=settings.db_url, ro_url=settings.db_url),
-        scope=Scope.singleton
+        scope=Scope.singleton,
     )
 
-    container.register(BaseUserRepository, instance=UserRepository(
-        model=User,
-        database=container.resolve(Database)
-    ))
-    container.register(BaseUserRoleRepository, instance=UserRoleRepository(
-        model=UserRole,
-        database=container.resolve(Database)
-    ))
+    container.register(
+        BaseUserRepository, instance=UserRepository(
+            model=User,
+            database=container.resolve(Database),
+        ),
+    )
+    container.register(
+        BaseUserRoleRepository, instance=UserRoleRepository(
+            model=UserRole,
+            database=container.resolve(Database),
+        ),
+    )
 
     container.register(
         TokenJwt,
         instance=TokenJwt(settings.jwt_key, settings.jwt_alg),
-        scope=Scope.singleton
+        scope=Scope.singleton,
     )
 
     container.register(
@@ -56,7 +69,7 @@ def _init_container() -> Container:
         instance=GetUserByToken(
             user_repository=container.resolve(BaseUserRepository),
             token_service=container.resolve(TokenJwt),
-        )
+        ),
     )
     container.register(
         S3Client,
@@ -75,7 +88,7 @@ def _init_container() -> Container:
         create_user_command_handler = CreateUserCommandHandler(
             user_repository=container.resolve(BaseUserRepository),
             role_repository=container.resolve(BaseUserRoleRepository),
-            _mediator=mediator
+            _mediator=mediator,
         )
         create_token_command_handler = CreateTokenCommandHandler(
             user_repository=container.resolve(BaseUserRepository),

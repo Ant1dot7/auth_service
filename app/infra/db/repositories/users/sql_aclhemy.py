@@ -4,13 +4,15 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from domain.entities.users import User as UserEntity, UserRole as UserRoleEntity
-from infra.converters.users import convert_user_entity_to_dict, convert_user_dto_to_entity, \
-    convert_user_role_dto_to_entity
-from infra.exceptions.users import UserDoesNotExists
+from infra.converters.users import (
+    convert_user_dto_to_entity,
+    convert_user_entity_to_dict,
+    convert_user_role_dto_to_entity,
+)
+from infra.db.models.users import User as UserDto, UserRole as UserRoleDto
 from infra.db.repositories.sql_aclhemy_base import SqlAlchemyRepository
 from infra.db.repositories.users.base import BaseUserRepository, BaseUserRoleRepository
-from infra.db.models.users import User as UserDto
-from infra.db.models.users import UserRole as UserRoleDto
+from infra.exceptions.users import UserDoesNotExists
 
 
 class UserRoleRepository(SqlAlchemyRepository[UserRoleDto], BaseUserRoleRepository):

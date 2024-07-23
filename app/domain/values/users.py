@@ -1,11 +1,15 @@
 from dataclasses import dataclass
 
+from email_validator import validate_email
 from passlib.hash import bcrypt
 
-from domain.exceptions.users import ShortValueException, InvalidPasswordException, InvalidEmailException, \
-    UpdateTypeException
+from domain.exceptions.users import (
+    InvalidEmailException,
+    InvalidPasswordException,
+    ShortValueException,
+    UpdateTypeException,
+)
 from domain.values.base import BaseValue
-from email_validator import validate_email
 
 
 @dataclass(eq=False, slots=True)
@@ -46,7 +50,7 @@ class Email(BaseValue[str]):
     def validate(self):
         try:
             validate_email(self.value)
-        except Exception:
+        except Exception: # noqa
             raise InvalidEmailException(email=self.value)
 
 
@@ -64,7 +68,7 @@ class Name(BaseValue[str | None]):
             raise ShortValueException(value=self.value, length=2)
 
     def update_value(self, new_value):
-        if not isinstance(new_value, (str, type(None))):
+        if not isinstance(new_value, str | type(None)):
             raise UpdateTypeException()
         super().update_value(new_value)
         self.value = new_value.capitalize()

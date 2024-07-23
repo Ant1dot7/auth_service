@@ -24,6 +24,7 @@ class UserRoleOutSchema(BaseModel):
         print(user_role)
         return cls(id=user_role.id, role=user_role.role)
 
+
 class UserOutSchema(BaseModel):
     id: int
     username: str
@@ -39,7 +40,7 @@ class UserOutSchema(BaseModel):
     role: UserRoleOutSchema
 
     @classmethod
-    def from_entity(cls, user: User) -> 'UserOutSchema':
+    def from_entity(cls, user: User) -> "UserOutSchema":
         return cls(
             id=user.id,
             username=user.username.as_json(),
@@ -52,7 +53,7 @@ class UserOutSchema(BaseModel):
             avatar=user.avatar,
             created_at=user.created_at,
             updated_at=user.updated_at,
-            role=UserRoleOutSchema.from_entity(user.role)
+            role=UserRoleOutSchema.from_entity(user.role),
         )
 
 

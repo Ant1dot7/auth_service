@@ -12,6 +12,6 @@ class SendVerifyMailEventHandler(EventHandler):
     async def handle(self, event: NewUserEvent) -> None:
         token = self.token_service.create_token(
             sub={"username": event.username.as_json()},
-            expire=30
+            expire=30,
         )
-        print(token) # TODO отправлять на мыло
+        print(token)  # TODO отправлять на мыло

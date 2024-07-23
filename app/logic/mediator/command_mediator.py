@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Sequence
 
 from logic.commands.base import Command, CommandHandler, CommandResult
 
@@ -10,7 +10,7 @@ from logic.commands.base import Command, CommandHandler, CommandResult
 class CommandMediator(ABC):
     command_maps: dict[Command, list[CommandHandler]] = field(
         default_factory=lambda: defaultdict(list),
-        kw_only=True
+        kw_only=True,
     )
 
     @abstractmethod
@@ -20,5 +20,3 @@ class CommandMediator(ABC):
     @abstractmethod
     async def handle_command(self, command: Command) -> CommandResult:
         ...
-
-

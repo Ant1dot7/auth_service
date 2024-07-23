@@ -10,7 +10,7 @@ class UserDoesNotExists(InfraException):
 
     @property
     def message(self) -> str:
-        return f'User: {self.user_data} does not found'
+        return f"User: {self.user_data} does not found"
 
 
 @dataclass(eq=False)
@@ -19,7 +19,7 @@ class UserAlreadyExists(InfraException):
 
     @property
     def message(self) -> str:
-        return f'User: {self.username} already exists'
+        return f"User: {self.username} already exists"
 
 
 @dataclass(eq=False)
@@ -28,4 +28,4 @@ class UserNotVerifyException(InfraException):
 
     @property
     def message(self) -> str:
-        return f'User: {self.username} not verify'
+        return f"User: {self.username} not verify"

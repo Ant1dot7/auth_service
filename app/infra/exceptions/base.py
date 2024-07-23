@@ -7,4 +7,4 @@ from common.exceptions import BaseAppException
 class InfraException(BaseAppException):
     @property
     def message(self) -> str:
-        return 'Infra Error'
+        return "Infra Error"

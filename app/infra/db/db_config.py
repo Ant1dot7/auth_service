@@ -1,9 +1,9 @@
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
-from typing import AsyncGenerator, Any
+from typing import Any
 
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
 
 
 class Database:
@@ -17,7 +17,7 @@ class Database:
         )
         self._async_session = async_sessionmaker(
             bind=self._async_engine,
-            expire_on_commit=False
+            expire_on_commit=False,
         )
 
         self._read_only_async_engine = create_async_engine(
@@ -28,7 +28,7 @@ class Database:
         )
         self._read_only_async_session = async_sessionmaker(
             bind=self._read_only_async_engine,
-            expire_on_commit=False
+            expire_on_commit=False,
         )
 
     @asynccontextmanager

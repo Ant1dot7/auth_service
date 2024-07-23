@@ -7,18 +7,18 @@ from infra.exceptions.base import InfraException
 class BaseTokenException(InfraException):
     @property
     def message(self) -> str:
-        return 'Invalid auth token'
+        return "Invalid auth token"
 
 
 @dataclass(eq=False)
 class TokenHasExpireException(BaseTokenException):
     @property
     def message(self) -> str:
-        return f'Token has expired'
+        return "Token has expired"
 
 
 @dataclass(eq=False)
 class TokenDecodeException(BaseTokenException):
     @property
     def message(self) -> str:
-        return 'Error decode token'
+        return "Error decode token"

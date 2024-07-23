@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from typing import Type
 
-from sqlalchemy import select, insert, update
+from sqlalchemy import insert, select, update
 from sqlalchemy.orm import DeclarativeBase
 
 from infra.db.db_config import Database
@@ -9,7 +8,7 @@ from infra.db.db_config import Database
 
 @dataclass(eq=False)
 class SqlAlchemyRepository[Model: DeclarativeBase]:
-    model: Type[Model]
+    model: type[Model]
     database: Database
 
     async def find_one_or_none(self, **filters) -> Model:

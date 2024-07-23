@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, UTC
 
 import jwt
 
-from infra.exceptions.token import TokenHasExpireException, TokenDecodeException
+from infra.exceptions.exceptions_token import TokenDecodeException, TokenHasExpireException
 
 
 @dataclass(eq=False)
@@ -18,10 +18,7 @@ class TokenJwt:
         return token
 
     def verify_jwt_token(self, token: str) -> dict:
-        """
-        Decodes the token and returns
-        its payload as a dictionary.
-        """
+        """Decodes the token and returns its payload as a dictionary."""
         try:
             payload = jwt.decode(token, key=self.key, algorithms=self.algorithm)
             return payload
