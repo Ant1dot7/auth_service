@@ -5,9 +5,9 @@ from punq import Container, Scope
 from domain.events.users import NewUserEvent
 from infra.common.utils import TokenJwt
 from infra.db.db_config import Database
-from infra.db.repositories.users.base import BaseUserRepository
-from infra.db.repositories.users.sql_aclhemy import UserRepository
-from infra.db.models.users import User
+from infra.db.repositories.users.base import BaseUserRepository, BaseUserRoleRepository
+from infra.db.repositories.users.sql_aclhemy import UserRepository, UserRoleRepository
+from infra.db.models.users import User, UserRole
 from infra.db.repositories.users.get_user_service import GetUserByToken
 from infra.s3.client import S3Client
 from logic.commands.users import CreateUserCommandHandler, CreateUserCommand, CreateTokenCommandHandler, \
@@ -29,6 +29,7 @@ def _init_container() -> Container:
     container.register(Settings, factory=get_settings, scope=Scope.singleton)
 
     settings: Settings = container.resolve(Settings)
+    # DB register
     container.register(
         Database,
         instance=Database(url=settings.db_url, ro_url=settings.db_url),
@@ -37,6 +38,10 @@ def _init_container() -> Container:
 
     container.register(BaseUserRepository, instance=UserRepository(
         model=User,
+        database=container.resolve(Database)
+    ))
+    container.register(BaseUserRoleRepository, instance=UserRoleRepository(
+        model=UserRole,
         database=container.resolve(Database)
     ))
 
@@ -69,6 +74,7 @@ def _init_container() -> Container:
         # COMMAND HANDLERS
         create_user_command_handler = CreateUserCommandHandler(
             user_repository=container.resolve(BaseUserRepository),
+            role_repository=container.resolve(BaseUserRoleRepository),
             _mediator=mediator
         )
         create_token_command_handler = CreateTokenCommandHandler(

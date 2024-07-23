@@ -2,7 +2,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, EmailStr
 
-from domain.entities.users import User
+from domain.entities.users import User, UserRole
 
 
 class UserInSchema(BaseModel):
@@ -14,6 +14,15 @@ class UserInSchema(BaseModel):
     last_name: str | None = None
     bio: str | None = None
 
+
+class UserRoleOutSchema(BaseModel):
+    id: int
+    role: str
+
+    @classmethod
+    def from_entity(cls, user_role: UserRole):
+        print(user_role)
+        return cls(id=user_role.id, role=user_role.role)
 
 class UserOutSchema(BaseModel):
     id: int
@@ -27,6 +36,7 @@ class UserOutSchema(BaseModel):
     avatar: str | None
     created_at: datetime
     updated_at: datetime | None
+    role: UserRoleOutSchema
 
     @classmethod
     def from_entity(cls, user: User) -> 'UserOutSchema':
@@ -42,6 +52,7 @@ class UserOutSchema(BaseModel):
             avatar=user.avatar,
             created_at=user.created_at,
             updated_at=user.updated_at,
+            role=UserRoleOutSchema.from_entity(user.role)
         )
 
 

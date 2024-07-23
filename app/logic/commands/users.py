@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 
+from domain.entities.enums import RoleEnum
 from domain.entities.users import User as UserEntity
 from domain.values.users import UserName, Password, Email, Name
-from infra.db.repositories.users.base import BaseUserRepository
+from infra.db.repositories.users.base import BaseUserRepository, BaseUserRoleRepository
 from infra.exceptions.users import UserAlreadyExists
 from infra.db.repositories.users.get_user_service import TokenJwt, GetUserByToken
 from infra.s3.client import S3Client
@@ -26,12 +27,13 @@ class CreateUserCommand(BaseCommand):
 @dataclass(eq=False)
 class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
     user_repository: BaseUserRepository
+    role_repository: BaseUserRoleRepository
     _mediator: Mediator
 
     async def handle(self, command: CreateUserCommand) -> UserEntity:
         if await self.user_repository.exists_user(username=command.username):  # Todo рефактор
             raise UserAlreadyExists(command.username)
-
+        role = await self.role_repository.get_role(role=RoleEnum.customer.value)
         user = UserEntity.create_user(
             username=UserName(command.username),
             password=Password(command.password),
@@ -40,6 +42,7 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
             first_name=Name(command.first_name),
             last_name=Name(command.last_name),
             bio=command.bio,
+            role=role,
         )
         events = user.pull_events()  # TODO email
         user = await self.user_repository.create_user(user)

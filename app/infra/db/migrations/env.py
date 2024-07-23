@@ -7,7 +7,7 @@ from alembic import context
 
 from settings.config import get_settings
 from infra.db.models.base import Base  # noqa
-from infra.db.models.users import User  # noqa
+from infra.db.models.users import *  # noqa
 
 settings = get_settings()
 config = context.config

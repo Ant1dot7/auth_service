@@ -2,6 +2,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 from domain.entities.users import User as UserEntity
+from domain.entities.users import UserRole as UserRoleEntity
+
+
+@dataclass(eq=False)
+class BaseUserRoleRepository(ABC):
+    @abstractmethod
+    async def get_role(self, **filters) -> UserRoleEntity:
+        ...
 
 
 @dataclass(eq=False)

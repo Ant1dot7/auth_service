@@ -2,8 +2,10 @@ from dataclasses import asdict
 from typing import Any, Mapping
 
 from domain.entities.users import User as UserEntity
+from domain.entities.users import UserRole as UserRoleEntity
 from domain.values.users import UserName, Password, Email, Name
 from infra.db.models.users import User as UserDto
+from infra.db.models.users import UserRole as UserRoleDto
 
 
 def convert_user_entity_to_dict(user: UserEntity) -> Mapping[str, Any]:
@@ -19,7 +21,15 @@ def convert_user_entity_to_dict(user: UserEntity) -> Mapping[str, Any]:
         'verify': user.verify,
         'created_at': user.created_at,
         'updated_at': user.updated_at,
+        "role_id": user.role.id,
     }
+
+
+def convert_user_role_dto_to_entity(user_role: UserRoleDto) -> UserRoleEntity:
+    return UserRoleEntity(
+        id=user_role.id,
+        role=user_role.role
+    )
 
 
 def convert_user_dto_to_entity(user: UserDto) -> UserEntity:
@@ -36,6 +46,5 @@ def convert_user_dto_to_entity(user: UserDto) -> UserEntity:
         verify=user.verify,
         created_at=user.created_at,
         updated_at=user.updated_at,
+        role=convert_user_role_dto_to_entity(user.role)
     )
-
-

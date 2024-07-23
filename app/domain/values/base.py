@@ -18,7 +18,6 @@ class BaseValue[Value: Any](ABC):
         return self.value
 
     def update_value(self, new_value: Any):
-
         if self.value is not None and self.value.__class__ != new_value.__class__:
             raise UpdateTypeException
         self.value = new_value
