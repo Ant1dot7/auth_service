@@ -1,8 +1,5 @@
 from dataclasses import dataclass
 
-from email_validator import validate_email
-from passlib.hash import bcrypt
-
 from domain.exceptions.users import (
     InvalidEmailException,
     InvalidPasswordException,
@@ -10,6 +7,8 @@ from domain.exceptions.users import (
     UpdateTypeException,
 )
 from domain.values.base import BaseValue
+from email_validator import validate_email
+from passlib.hash import bcrypt
 
 
 @dataclass(eq=False, slots=True)

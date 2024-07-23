@@ -1,11 +1,10 @@
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
-
 from infra.db.models.base import Base  # noqa
 from infra.db.models.users import *  # noqa
 from settings.config import get_settings
+from sqlalchemy import engine_from_config, pool
 
 
 settings = get_settings()

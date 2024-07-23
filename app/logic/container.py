@@ -1,7 +1,5 @@
 from functools import lru_cache
 
-from punq import Container, Scope
-
 from domain.events.users import NewUserEvent
 from infra.common.utils import TokenJwt
 from infra.db.db_config import Database
@@ -25,6 +23,7 @@ from logic.commands.users import (
 from logic.events.users import SendVerifyMailEventHandler
 from logic.mediator.main_mediator import Mediator
 from logic.queries.users import GetUserByTokenQuery, GetVerifyUserQueryHandler
+from punq import Container, Scope
 from settings.config import get_settings, Settings
 
 

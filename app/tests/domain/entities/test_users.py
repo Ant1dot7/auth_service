@@ -1,5 +1,4 @@
 import pytest
-
 from domain.entities.users import User
 from domain.events.users import NewUserEvent
 from domain.exceptions.users import InvalidPasswordException

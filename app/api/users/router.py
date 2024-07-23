@@ -8,9 +8,6 @@ from fastapi import (
 from fastapi.responses import ORJSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from punq import Container
-from starlette import status
-
 from api.users.schemas import (
     UserInSchema,
     UserOutSchema,
@@ -32,6 +29,8 @@ from logic.commands.users import (
 from logic.container import init_container
 from logic.mediator.main_mediator import Mediator
 from logic.queries.users import GetUserByTokenQuery
+from punq import Container
+from starlette import status
 
 
 router = APIRouter(prefix="/users", default_response_class=ORJSONResponse)

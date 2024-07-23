@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, UTC
 
 import jwt
-
 from infra.exceptions.exceptions_token import TokenDecodeException, TokenHasExpireException
 
 

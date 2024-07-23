@@ -1,8 +1,7 @@
 from datetime import date, datetime
 
-from pydantic import BaseModel, EmailStr
-
 from domain.entities.users import User, UserRole
+from pydantic import BaseModel, EmailStr
 
 
 class UserInSchema(BaseModel):

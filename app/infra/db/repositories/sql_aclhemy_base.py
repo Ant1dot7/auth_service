@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 
+from infra.db.db_config import Database
 from sqlalchemy import insert, select, update
 from sqlalchemy.orm import DeclarativeBase
-
-from infra.db.db_config import Database
 
 
 @dataclass(eq=False)

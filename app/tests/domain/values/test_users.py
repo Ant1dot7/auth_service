@@ -1,5 +1,4 @@
 import pytest
-
 from domain.exceptions.users import (
     InvalidEmailException,
     InvalidPasswordException,
