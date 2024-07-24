@@ -10,7 +10,7 @@ from domain.values.users import (
 )
 from infra.db.repositories.users.base import BaseUserRepository, BaseUserRoleRepository
 from infra.db.repositories.users.get_user_service import GetUserByToken, TokenJwt
-from infra.exceptions.users import UserAlreadyExists
+from infra.exceptions.users import RoleAssignmentException, SelfRoleAssignmentException, UserAlreadyExists
 from infra.s3.client import S3Client
 from logic.commands.base import BaseCommand, CommandHandler
 from logic.mediator.main_mediator import Mediator
@@ -69,8 +69,8 @@ class CreateTokenCommandHandler(CommandHandler[CreateTokenCommand, str]):
         user = await self.user_repository.get_user_not_load(username=command.username)
         user.password.verify_password(command.password)
 
-        access_token = self.token_service.create_token(sub={"id": user.id}, expire=15)
-        refresh_token = self.token_service.create_token(sub={"id": user.id}, expire=3600)
+        access_token = self.token_service.create_token(sub={"id": user.id}, expire=50)  # todo вынести в константу
+        refresh_token = self.token_service.create_token(sub={"id": user.id}, expire=3600)  # todo вынести в константу
 
         return access_token, refresh_token
 
@@ -112,8 +112,7 @@ class UpdateUserAvatarCommandHandler(CommandHandler[UpdateUserAvatarCommand, Non
             file_bytes=command.avatar,
             s3_path=s3_path,
         )
-        user.to_update(avatar=f"{self.settings.user_bucket}/{s3_path}")
-        await self.user_repository.update_user(user)
+        await self.user_repository.update_fields(user_id=user.id, avatar=f"{self.settings.user_bucket}/{s3_path}")
 
 
 @dataclass(eq=False)
@@ -131,3 +130,27 @@ class UpdateUserDataCommandHandler(CommandHandler[UpdateUserDataCommand, None]):
         user = await self.get_user_service.get_verify_user(command.token, loaded=False)
         user.to_update(**command.data)
         await self.user_repository.update_user(user)
+
+
+@dataclass(eq=False)
+class UpdateUserRoleCommand(BaseCommand):
+    token: str
+    user_id: int
+    role_id: int
+
+
+@dataclass(eq=False)
+class UpdateUserRoleCommandHandler(CommandHandler[UpdateUserRoleCommand, None]):
+    user_repository: BaseUserRepository
+    get_user_service: GetUserByToken
+    role_repository: BaseUserRoleRepository
+
+    async def handle(self, command: UpdateUserRoleCommand) -> None:
+        user_admin = await self.get_user_service.get_admin_user(command.token)
+        if user_admin.id == command.user_id:
+            raise SelfRoleAssignmentException()
+        role = await self.role_repository.get_role(id=command.role_id)
+        if user_admin.role.lvl < role.lvl:
+            raise RoleAssignmentException(username=user_admin.username.as_json())
+        user_to_change_role = await self.user_repository.get_user(id=command.user_id)
+        await self.user_repository.update_fields(user_id=user_to_change_role.id, role_id=role.id)

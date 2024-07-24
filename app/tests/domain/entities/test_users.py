@@ -1,5 +1,6 @@
 import pytest
-from domain.entities.users import User
+from domain.entities.enums import RoleEnum
+from domain.entities.users import User, UserRole
 from domain.events.users import NewUserEvent
 from domain.exceptions.users import InvalidPasswordException
 from domain.values.users import (
@@ -25,6 +26,7 @@ def test_create_user():
     assert len(user._events) == 1
     assert isinstance(user.pull_events()[0], NewUserEvent)
     assert len(user._events) == 0
+    assert user.role.lvl == RoleEnum.customer.level
 
 
 def test_create_user_with_first_last_name():
@@ -44,3 +46,9 @@ def test_create_user_with_first_last_name():
     assert len(user._events) == 1
     assert isinstance(user.pull_events()[0], NewUserEvent)
     assert len(user._events) == 0
+
+
+def test_user_role():
+    role = UserRole(role=RoleEnum.superuser)
+    assert role.lvl == 4
+    assert role.lvl == RoleEnum.superuser.level

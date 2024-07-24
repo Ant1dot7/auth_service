@@ -26,7 +26,11 @@ class BaseUserRepository(ABC):
         ...
 
     @abstractmethod
-    async def update_user(self, user: UserEntity):
+    async def update_user(self, user: UserEntity) -> None:
+        ...
+
+    @abstractmethod
+    async def update_fields(self, user_id: int, **fields) -> None:
         ...
 
     @abstractmethod

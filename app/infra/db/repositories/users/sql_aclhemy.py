@@ -10,7 +10,7 @@ from infra.converters.users import (
 from infra.db.models.users import User as UserDto, UserRole as UserRoleDto
 from infra.db.repositories.sql_aclhemy_base import SqlAlchemyRepository
 from infra.db.repositories.users.base import BaseUserRepository, BaseUserRoleRepository
-from infra.exceptions.users import UserDoesNotExists
+from infra.exceptions.users import UserDoesNotExists, UserRoleDoesNotExists
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
@@ -18,6 +18,8 @@ from sqlalchemy.orm import joinedload
 class UserRoleRepository(SqlAlchemyRepository[UserRoleDto], BaseUserRoleRepository):
     async def get_role(self, **filters) -> UserRoleEntity:
         role_dto = await self.find_one_or_none(**filters)
+        if not role_dto:
+            raise UserRoleDoesNotExists(filters)
         return convert_user_role_dto_to_entity(role_dto)
 
 
@@ -41,6 +43,9 @@ class UserRepository(SqlAlchemyRepository[UserDto], BaseUserRepository):
 
     async def update_user(self, user: UserEntity):
         await self.update_obj(user.id, **convert_user_entity_to_dict(user))
+
+    async def update_fields(self, user_id: int, **fields) -> None:
+        await self.update_obj(user_id, **fields)
 
     async def get_user_not_load(self, **filters) -> UserEntity:
         user = await self.find_one_or_none(**filters)

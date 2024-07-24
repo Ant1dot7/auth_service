@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from domain.entities.users import User
 from infra.common.utils import TokenJwt
 from infra.db.repositories.users.base import BaseUserRepository
-from infra.exceptions.users import UserNotVerifyException
+from infra.exceptions.users import UserHasNoAccessException, UserNotVerifyException
 
 
 @dataclass(eq=False)
@@ -22,4 +22,10 @@ class GetUserByToken(ABC):
         user = await self.get_user(token, loaded)
         if not user.verify:
             raise UserNotVerifyException(user.username.as_json())
+        return user
+
+    async def get_admin_user(self, token: str):
+        user = await self.get_user(token)
+        if not user.is_admin:
+            raise UserHasNoAccessException(user.username.as_json())
         return user

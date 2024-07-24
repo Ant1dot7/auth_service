@@ -9,6 +9,7 @@ from domain.values.users import (
     UserName,
 )
 from infra.db.models.users import User as UserDto, UserRole as UserRoleDto
+from settings.config import get_settings
 
 
 def convert_user_entity_to_dict(user: UserEntity) -> Mapping[str, Any]:
@@ -47,7 +48,7 @@ def convert_user_dto_to_entity(user: UserDto) -> UserEntity:
         first_name=Name(user.first_name, _need_validate=False),
         last_name=Name(user.last_name, _need_validate=False),
         bio=user.bio,
-        avatar=user.avatar,
+        avatar=f"{get_settings().s3_url}/{user.avatar}",
         verify=user.verify,
         created_at=user.created_at,
         updated_at=user.updated_at,

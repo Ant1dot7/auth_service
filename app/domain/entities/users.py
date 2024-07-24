@@ -15,7 +15,17 @@ from domain.values.users import (
 @dataclass(eq=False)
 class UserRole:
     id: int | None = field(default=None, kw_only=True)
-    role: str
+    role: RoleEnum
+
+    @property
+    def lvl(self):
+        lvl_mapping = {
+            RoleEnum.customer: 1,
+            RoleEnum.employee: 2,
+            RoleEnum.admin: 3,
+            RoleEnum.superuser: 4,
+        }
+        return lvl_mapping[self.role]
 
 
 @dataclass(eq=False)
@@ -30,10 +40,14 @@ class User(BaseEntity):
     bio: str = field(default=None, kw_only=True)
     avatar: str = field(default=None, kw_only=True)
 
-    role: UserRole = field(default=UserRole(RoleEnum.customer.value), kw_only=True)
+    role: UserRole = field(default=UserRole(RoleEnum.customer), kw_only=True)
 
     @classmethod
     def create_user(cls, **create_data) -> "User":
         user = cls(**create_data)
         user.register_event(NewUserEvent(email=user.email, username=user.username))
         return user
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role.role in (RoleEnum.admin, RoleEnum.superuser)

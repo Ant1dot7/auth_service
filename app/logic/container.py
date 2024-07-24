@@ -17,6 +17,8 @@ from logic.commands.users import (
     UpdateUserAvatarCommandHandler,
     UpdateUserDataCommand,
     UpdateUserDataCommandHandler,
+    UpdateUserRoleCommand,
+    UpdateUserRoleCommandHandler,
     VerifyUserCommand,
     VerifyUserCommandHandler,
 )
@@ -107,6 +109,11 @@ def _init_container() -> Container:
             user_repository=container.resolve(BaseUserRepository),
             get_user_service=container.resolve(GetUserByToken),
         )
+        update_user_role_command_handler = UpdateUserRoleCommandHandler(
+            user_repository=container.resolve(BaseUserRepository),
+            get_user_service=container.resolve(GetUserByToken),
+            role_repository=container.resolve(BaseUserRoleRepository),
+        )
 
         # EVENT HANDLERS
         send_verify_token = SendVerifyMailEventHandler(token_service=container.resolve(TokenJwt))
@@ -122,6 +129,7 @@ def _init_container() -> Container:
         mediator.register_command(VerifyUserCommand, [verify_user_command_handler])
         mediator.register_command(UpdateUserAvatarCommand, [update_user_avatar_command_handler])
         mediator.register_command(UpdateUserDataCommand, [update_user_data_command_handler])
+        mediator.register_command(UpdateUserRoleCommand, [update_user_role_command_handler])
 
         # REGISTER QUERY
         mediator.register_query(GetUserByTokenQuery, get_user_by_token_query_handler)
