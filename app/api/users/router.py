@@ -31,7 +31,7 @@ from logic.commands.users import (
     VerifyUserCommand,
 )
 from logic.container import init_container
-from logic.mediator.main_mediator import Mediator
+from logic.mediator import Mediator
 from logic.queries.users import GetUserByTokenQuery
 from punq import Container
 from starlette import status
@@ -87,13 +87,15 @@ async def profile(
     return UserOutSchema.from_entity(user)
 
 
-@router.get("/verify/{token}", status_code=status.HTTP_204_NO_CONTENT)
-async def verify(access_token: str, container: Container = Depends(init_container)):
+@router.get("/verify/{verify_token}", status_code=status.HTTP_204_NO_CONTENT)
+async def verify(verify_token: str, container: Container = Depends(init_container)):
     mediator: Mediator = container.resolve(Mediator)
     try:
-        await mediator.handle_command(VerifyUserCommand(token=access_token))
+        await mediator.handle_command(VerifyUserCommand(token=verify_token))
     except BaseTokenException as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except InfraException as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.patch("/avatar", status_code=status.HTTP_204_NO_CONTENT)

@@ -1,13 +1,14 @@
 from functools import lru_cache
 
 from domain.events.users import NewUserEvent
-from infra.common.utils import TokenJwt
+from infra.common.jwt_service import TokenJwt
 from infra.db.db_config import Database
 from infra.db.models.users import User, UserRole
 from infra.db.repositories.users.base import BaseUserRepository, BaseUserRoleRepository
 from infra.db.repositories.users.get_user_service import GetUserByToken
 from infra.db.repositories.users.sql_aclhemy import UserRepository, UserRoleRepository
 from infra.s3.client import S3Client
+from infra.smtp_service.main import MessageBuilder, SendMail
 from logic.commands.users import (
     CreateTokenCommand,
     CreateTokenCommandHandler,
@@ -23,7 +24,7 @@ from logic.commands.users import (
     VerifyUserCommandHandler,
 )
 from logic.events.users import SendVerifyMailEventHandler
-from logic.mediator.main_mediator import Mediator
+from logic.mediator import Mediator
 from logic.queries.users import GetUserByTokenQuery, GetVerifyUserQueryHandler
 from punq import Container, Scope
 from settings.config import get_settings, Settings
@@ -65,13 +66,7 @@ def _init_container() -> Container:
         scope=Scope.singleton,
     )
 
-    container.register(
-        GetUserByToken,
-        instance=GetUserByToken(
-            user_repository=container.resolve(BaseUserRepository),
-            token_service=container.resolve(TokenJwt),
-        ),
-    )
+    container.register(GetUserByToken, factory=GetUserByToken)
     container.register(
         S3Client,
         instance=S3Client(
@@ -81,6 +76,8 @@ def _init_container() -> Container:
         ),
         scope=Scope.singleton,
     )
+    container.register(SendMail, factory=SendMail)
+    container.register(MessageBuilder, instance=MessageBuilder(smtp_user=settings.smtp_user))
 
     def init_mediator() -> Mediator:
         mediator = Mediator()
@@ -94,6 +91,7 @@ def _init_container() -> Container:
         create_token_command_handler = CreateTokenCommandHandler(
             user_repository=container.resolve(BaseUserRepository),
             token_service=container.resolve(TokenJwt),
+            settings=container.resolve(Settings),
         )
         verify_user_command_handler = VerifyUserCommandHandler(
             user_repository=container.resolve(BaseUserRepository),
@@ -103,7 +101,7 @@ def _init_container() -> Container:
             user_repository=container.resolve(BaseUserRepository),
             get_user_service=container.resolve(GetUserByToken),
             s3_client=container.resolve(S3Client),
-            settings=settings,
+            settings=container.resolve(Settings),
         )
         update_user_data_command_handler = UpdateUserDataCommandHandler(
             user_repository=container.resolve(BaseUserRepository),
@@ -116,7 +114,12 @@ def _init_container() -> Container:
         )
 
         # EVENT HANDLERS
-        send_verify_token = SendVerifyMailEventHandler(token_service=container.resolve(TokenJwt))
+        send_verify_token = SendVerifyMailEventHandler(
+            token_service=container.resolve(TokenJwt),
+            send_mail_service=container.resolve(SendMail),
+            message_builder=container.resolve(MessageBuilder),
+            settings=container.resolve(Settings),
+        )
 
         # QUERY HANDLERS
         get_user_by_token_query_handler = GetVerifyUserQueryHandler(

@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass
 
 from domain.entities.users import User
-from infra.common.utils import TokenJwt
+from infra.common.jwt_service import TokenJwt
 from infra.db.repositories.users.base import BaseUserRepository
 from infra.exceptions.users import UserHasNoAccessException, UserNotVerifyException
 

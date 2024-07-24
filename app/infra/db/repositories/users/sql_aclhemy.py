@@ -48,5 +48,7 @@ class UserRepository(SqlAlchemyRepository[UserDto], BaseUserRepository):
         await self.update_obj(user_id, **fields)
 
     async def get_user_not_load(self, **filters) -> UserEntity:
-        user = await self.find_one_or_none(**filters)
-        return convert_user_dto_not_load_to_entity(user)
+        user_dto = await self.find_one_or_none(**filters)
+        if not user_dto:
+            raise UserDoesNotExists(filters)
+        return convert_user_dto_not_load_to_entity(user_dto)

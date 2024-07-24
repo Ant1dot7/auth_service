@@ -13,7 +13,7 @@ from infra.db.repositories.users.get_user_service import GetUserByToken, TokenJw
 from infra.exceptions.users import RoleAssignmentException, SelfRoleAssignmentException, UserAlreadyExists
 from infra.s3.client import S3Client
 from logic.commands.base import BaseCommand, CommandHandler
-from logic.mediator.main_mediator import Mediator
+from logic.mediator import Mediator
 from settings.config import Settings
 
 
@@ -64,13 +64,14 @@ class CreateTokenCommand(BaseCommand):
 class CreateTokenCommandHandler(CommandHandler[CreateTokenCommand, str]):
     user_repository: BaseUserRepository
     token_service: TokenJwt
+    settings: Settings
 
     async def handle(self, command: CreateUserCommand) -> tuple[str, str]:
         user = await self.user_repository.get_user_not_load(username=command.username)
         user.password.verify_password(command.password)
 
-        access_token = self.token_service.create_token(sub={"id": user.id}, expire=50)  # todo вынести в константу
-        refresh_token = self.token_service.create_token(sub={"id": user.id}, expire=3600)  # todo вынести в константу
+        access_token = self.token_service.create_token(sub={"id": user.id}, expire=self.settings.time_access_token)
+        refresh_token = self.token_service.create_token(sub={"id": user.id}, expire=self.settings.time_refresh_token)
 
         return access_token, refresh_token
 
@@ -87,8 +88,7 @@ class VerifyUserCommandHandler(CommandHandler[VerifyUserCommand, None]):
 
     async def handle(self, command: VerifyUserCommand) -> None:
         user = await self.get_user_service.get_user(command.token, loaded=False)
-        user.to_update(verify=True)
-        await self.user_repository.update_user(user)
+        await self.user_repository.update_fields(user.id, verify=True)
 
 
 @dataclass(eq=False)

@@ -12,7 +12,7 @@ class Database:
         self._async_engine = create_async_engine(
             url=url,
             pool_pre_ping=True,
-            echo=True,
+            echo=False,
             isolation_level="READ COMMITTED",
         )
         self._async_session = async_sessionmaker(
@@ -23,7 +23,7 @@ class Database:
         self._read_only_async_engine = create_async_engine(
             url=ro_url,
             pool_pre_ping=True,
-            echo=True,
+            echo=False,
             isolation_level="AUTOCOMMIT",
         )
         self._read_only_async_session = async_sessionmaker(
