@@ -8,7 +8,6 @@ from infra.db.repositories.users.base import BaseUserRepository, BaseUserRoleRep
 from infra.db.repositories.users.get_user_service import GetUserByToken
 from infra.db.repositories.users.sql_aclhemy import UserRepository, UserRoleRepository
 from infra.s3.client import S3Client
-from infra.smtp_service.main import MessageBuilder, SendMail
 from logic.commands.users import (
     CreateTokenCommand,
     CreateTokenCommandHandler,
@@ -76,8 +75,6 @@ def _init_container() -> Container:
         ),
         scope=Scope.singleton,
     )
-    container.register(SendMail, factory=SendMail)
-    container.register(MessageBuilder, instance=MessageBuilder(smtp_user=settings.smtp_user))
 
     def init_mediator() -> Mediator:
         mediator = Mediator()
@@ -116,8 +113,6 @@ def _init_container() -> Container:
         # EVENT HANDLERS
         send_verify_token = SendVerifyMailEventHandler(
             token_service=container.resolve(TokenJwt),
-            send_mail_service=container.resolve(SendMail),
-            message_builder=container.resolve(MessageBuilder),
             settings=container.resolve(Settings),
         )
 

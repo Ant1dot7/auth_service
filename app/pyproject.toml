@@ -20,6 +20,9 @@ alembic = "^1.13.2"
 orjson = "^3.10.6"
 pyjwt = "^2.8.0"
 aiobotocore = "^2.13.1"
+aiosmtplib = "^3.0.1"
+taskiq = {extras = ["reload"], version = "^0.11.6"}
+taskiq-redis = "^1.0.0"
 
 
 [tool.poetry.group.dev.dependencies]

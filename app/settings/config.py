@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     base_dir: Path = Path(__file__).resolve().parent.parent
-    verify_template_path: Path = base_dir / "infra/smtp_service/email_template.html"
+    verify_template_path: Path = base_dir / "templates/verify_template.html"
 
     postgres_db: str = Field(alias="POSTGRES_DB")
     postgres_user: str = Field(alias="POSTGRES_USER")

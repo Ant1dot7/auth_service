@@ -48,7 +48,7 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, int]):
             bio=command.bio,
             role=role,
         )
-        events = user.pull_events()  # TODO email
+        events = user.pull_events()
         user_id = await self.user_repository.create_user(user)
         await self._mediator.handle_events(events)
         return user_id

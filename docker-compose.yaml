@@ -15,6 +15,8 @@ services:
     command: uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
     depends_on:
       - postgres
+      - redis
+      - minio
 
   postgres:
     image: postgres:15.2
@@ -38,6 +40,24 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio-data:/data
+
+  worker:
+    build: ./app
+    container_name: auth_worker
+    hostname: worker
+    command: taskiq worker infra.task_iq.broker:broker  infra.task_iq.tasks --reload
+    volumes:
+      - ./app:/app
+    links:
+      - redis
+    depends_on:
+      - redis
+    env_file:
+      - app/.env
+
+  redis:
+    image: redis:latest
+    container_name: auth_redis
 
 volumes:
   pgdata:
