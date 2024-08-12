@@ -12,20 +12,17 @@ from infra.db.repositories.users.base import BaseUserRepository, BaseUserRoleRep
 from infra.db.repositories.users.get_user_service import GetUserByToken, TokenJwt
 from infra.exceptions.users import RoleAssignmentException, SelfRoleAssignmentException, UserAlreadyExists
 from infra.s3.client import S3Client
-from logic.commands.base import BaseCommand, CommandHandler
+from logic.commands.base import CommandHandler
+from logic.commands.users.commands import (
+    CreateTokenCommand,
+    CreateUserCommand,
+    UpdateUserAvatarCommand,
+    UpdateUserDataCommand,
+    UpdateUserRoleCommand,
+    VerifyUserCommand,
+)
 from logic.mediator import Mediator
 from settings.config import Settings
-
-
-@dataclass(eq=False)
-class CreateUserCommand(BaseCommand):
-    username: str
-    password: str
-    email: str
-    date_birth: str | None
-    first_name: str | None
-    last_name: str | None
-    bio: str | None
 
 
 @dataclass(eq=False)
@@ -55,12 +52,6 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, int]):
 
 
 @dataclass(eq=False)
-class CreateTokenCommand(BaseCommand):
-    username: str
-    password: str
-
-
-@dataclass(eq=False)
 class CreateTokenCommandHandler(CommandHandler[CreateTokenCommand, str]):
     user_repository: BaseUserRepository
     token_service: TokenJwt
@@ -77,11 +68,6 @@ class CreateTokenCommandHandler(CommandHandler[CreateTokenCommand, str]):
 
 
 @dataclass(eq=False)
-class VerifyUserCommand(BaseCommand):
-    token: str
-
-
-@dataclass(eq=False)
 class VerifyUserCommandHandler(CommandHandler[VerifyUserCommand, None]):
     user_repository: BaseUserRepository
     get_user_service: GetUserByToken
@@ -89,12 +75,6 @@ class VerifyUserCommandHandler(CommandHandler[VerifyUserCommand, None]):
     async def handle(self, command: VerifyUserCommand) -> None:
         user = await self.get_user_service.get_user(command.token, loaded=False)
         await self.user_repository.update_fields(user.id, verify=True)
-
-
-@dataclass(eq=False)
-class UpdateUserAvatarCommand(BaseCommand):
-    token: str
-    avatar: bytes
 
 
 @dataclass(eq=False)
@@ -116,12 +96,6 @@ class UpdateUserAvatarCommandHandler(CommandHandler[UpdateUserAvatarCommand, Non
 
 
 @dataclass(eq=False)
-class UpdateUserDataCommand(BaseCommand):
-    token: str
-    data: dict
-
-
-@dataclass(eq=False)
 class UpdateUserDataCommandHandler(CommandHandler[UpdateUserDataCommand, None]):
     user_repository: BaseUserRepository
     get_user_service: GetUserByToken
@@ -130,13 +104,6 @@ class UpdateUserDataCommandHandler(CommandHandler[UpdateUserDataCommand, None]):
         user = await self.get_user_service.get_verify_user(command.token, loaded=False)
         user.to_update(**command.data)
         await self.user_repository.update_user(user)
-
-
-@dataclass(eq=False)
-class UpdateUserRoleCommand(BaseCommand):
-    token: str
-    user_id: int
-    role_id: int
 
 
 @dataclass(eq=False)

@@ -8,18 +8,20 @@ from infra.db.repositories.users.base import BaseUserRepository, BaseUserRoleRep
 from infra.db.repositories.users.get_user_service import GetUserByToken
 from infra.db.repositories.users.sql_aclhemy import UserRepository, UserRoleRepository
 from infra.s3.client import S3Client
-from logic.commands.users import (
+from logic.commands.users.commands import (
     CreateTokenCommand,
-    CreateTokenCommandHandler,
     CreateUserCommand,
-    CreateUserCommandHandler,
     UpdateUserAvatarCommand,
-    UpdateUserAvatarCommandHandler,
     UpdateUserDataCommand,
-    UpdateUserDataCommandHandler,
     UpdateUserRoleCommand,
-    UpdateUserRoleCommandHandler,
     VerifyUserCommand,
+)
+from logic.commands.users.handlers import (
+    CreateTokenCommandHandler,
+    CreateUserCommandHandler,
+    UpdateUserAvatarCommandHandler,
+    UpdateUserDataCommandHandler,
+    UpdateUserRoleCommandHandler,
     VerifyUserCommandHandler,
 )
 from logic.events.users import SendVerifyMailEventHandler

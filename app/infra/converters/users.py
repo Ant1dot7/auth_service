@@ -48,7 +48,7 @@ def convert_user_dto_to_entity(user: UserDto) -> UserEntity:
         first_name=Name(user.first_name, _need_validate=False),
         last_name=Name(user.last_name, _need_validate=False),
         bio=user.bio,
-        avatar=f"{get_settings().s3_url}/{user.avatar}",
+        avatar=f"{get_settings().s3_url}/{user.avatar}" if user.avatar else None,
         verify=user.verify,
         created_at=user.created_at,
         updated_at=user.updated_at,

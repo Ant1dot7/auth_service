@@ -22,7 +22,7 @@ from infra.exceptions.base import InfraException
 from infra.exceptions.exceptions_token import BaseTokenException
 from infra.exceptions.users import UserHasNoAccessException
 from infra.filters.users import GetUserByTokenFilter
-from logic.commands.users import (
+from logic.commands.users.commands import (
     CreateTokenCommand,
     CreateUserCommand,
     UpdateUserAvatarCommand,
@@ -87,7 +87,7 @@ async def profile(
     return UserOutSchema.from_entity(user)
 
 
-@router.get("/verify/{verify_token}", status_code=status.HTTP_204_NO_CONTENT)
+@router.get("/verify/{verify_token}", status_code=status.HTTP_200_OK)
 async def verify(verify_token: str, container: Container = Depends(init_container)):
     mediator: Mediator = container.resolve(Mediator)
     try:
@@ -96,6 +96,7 @@ async def verify(verify_token: str, container: Container = Depends(init_containe
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
     except InfraException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    return {"status": "successful verification"}
 
 
 @router.patch("/avatar", status_code=status.HTTP_204_NO_CONTENT)
