@@ -30,10 +30,9 @@ from logic.commands.users.commands import (
     UpdateUserRoleCommand,
     VerifyUserCommand,
 )
-from logic.container import init_container
+from logic.container import resolve_mediator
 from logic.mediator import Mediator
 from logic.queries.users import GetUserByTokenQuery
-from punq import Container
 from starlette import status
 
 
@@ -45,9 +44,8 @@ oauth2schema = OAuth2PasswordBearer(tokenUrl="users/token", scheme_name="JWT")
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_user(
         user_schema: UserInSchema,
-        container: Container = Depends(init_container),
+        mediator: Mediator = Depends(resolve_mediator),
 ) -> CreateUserOutSchema:
-    mediator: Mediator = container.resolve(Mediator)
     try:
         user_id, *_ = await mediator.handle_command(
             CreateUserCommand(**user_schema.model_dump()),
@@ -60,9 +58,8 @@ async def create_user(
 @router.post("/token", status_code=status.HTTP_200_OK)
 async def token(
         form_data: OAuth2PasswordRequestForm = Depends(),
-        container: Container = Depends(init_container),
+        mediator: Mediator = Depends(resolve_mediator),
 ) -> UserTokenOutSchema:
-    mediator: Mediator = container.resolve(Mediator)
     try:
         (access_token, refresh_token), *_ = await mediator.handle_command(
             CreateTokenCommand(username=form_data.username, password=form_data.password),
@@ -75,9 +72,8 @@ async def token(
 @router.get("/profile", status_code=status.HTTP_200_OK)
 async def profile(
         access_token: str = Depends(oauth2schema),
-        container: Container = Depends(init_container),
+        mediator: Mediator = Depends(resolve_mediator),
 ):
-    mediator: Mediator = container.resolve(Mediator)
     try:
         user = await mediator.handle_query(GetUserByTokenQuery(GetUserByTokenFilter(token=access_token)))
     except BaseTokenException as e:
@@ -88,8 +84,7 @@ async def profile(
 
 
 @router.get("/verify/{verify_token}", status_code=status.HTTP_200_OK)
-async def verify(verify_token: str, container: Container = Depends(init_container)):
-    mediator: Mediator = container.resolve(Mediator)
+async def verify(verify_token: str, mediator: Mediator = Depends(resolve_mediator)):
     try:
         await mediator.handle_command(VerifyUserCommand(token=verify_token))
     except BaseTokenException as e:
@@ -103,11 +98,10 @@ async def verify(verify_token: str, container: Container = Depends(init_containe
 async def update_avatar(
         avatar: UploadFile = File(),
         access_token: str = Depends(oauth2schema),
-        container: Container = Depends(init_container),
+        mediator: Mediator = Depends(resolve_mediator),
 ):
     if not avatar.content_type.startswith("image"):
         raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail="Send image file")
-    mediator: Mediator = container.resolve(Mediator)
     try:
         await mediator.handle_command(UpdateUserAvatarCommand(token=access_token, avatar=await avatar.read()))
     except BaseTokenException as e:
@@ -118,13 +112,12 @@ async def update_avatar(
 async def update_user_data(
         update_data: UserUpdateSchema,
         access_token: str = Depends(oauth2schema),
-        container: Container = Depends(init_container),
+        mediator: Mediator = Depends(resolve_mediator),
 ):
     update_dict = update_data.model_dump(exclude_none=True)
     if not update_dict:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty data")
 
-    mediator: Mediator = container.resolve(Mediator)
     try:
         await mediator.handle_command(UpdateUserDataCommand(token=access_token, data=update_dict))
     except BaseDomainException as e:
@@ -140,9 +133,8 @@ async def update_user_role(
         user_id: int = Query(..., ge=1),
         role_id: int = Query(..., ge=1),
         access_token: str = Depends(oauth2schema),
-        container: Container = Depends(init_container),
+        mediator: Mediator = Depends(resolve_mediator),
 ):
-    mediator: Mediator = container.resolve(Mediator)
     try:
         await mediator.handle_command(
             UpdateUserRoleCommand(

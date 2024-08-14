@@ -36,6 +36,11 @@ def init_container() -> Container:
     return _init_container()
 
 
+def resolve_mediator():
+    container = init_container()
+    return container.resolve(Mediator)
+
+
 def _init_container() -> Container:
     container = Container()
     container.register(Settings, factory=get_settings, scope=Scope.singleton)
