@@ -16,5 +16,5 @@ class GetVerifyUserQueryHandler(QueryHandler[GetUserByTokenQuery, UserEntity]):
     get_user_service: GetUserByToken
 
     async def handle(self, query: GetUserByTokenQuery) -> UserEntity:
-        user = await self.get_user_service.get_verify_user(token=query.filters.token)
+        user = await self.get_user_service.get_verify_user(token=query.filters.token, loaded=True)
         return user
