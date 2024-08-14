@@ -36,7 +36,7 @@ def init_container() -> Container:
     return _init_container()
 
 
-def resolve_mediator():
+def resolve_mediator() -> Mediator:
     container = init_container()
     return container.resolve(Mediator)
 
