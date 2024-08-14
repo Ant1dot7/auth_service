@@ -69,5 +69,5 @@ class Name(BaseValue[str | None]):
     def update_value(self, new_value):
         if not isinstance(new_value, str | type(None)):
             raise UpdateTypeException()
-        super().update_value(new_value)
         self.value = new_value.capitalize()
+        self.validate()
