@@ -7,6 +7,14 @@ from domain.events.base import BaseEvent
 from domain.values.base import BaseValue
 
 
+class NotLoaded:
+    def __bool__(self) -> bool:
+        return False
+
+    def __repr__(self) -> str:
+        return "<NotLoaded>"
+
+
 @dataclass
 class BaseEntity(ABC):
     oid: str = field(default_factory=lambda: str(uuid4()), kw_only=True)
